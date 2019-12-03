@@ -1,10 +1,15 @@
 
 library(tidyverse)
 library(data.table)
+library(RODBC)
 
-samples <- fread("D:/analisi_in_corso/TP53/ELENCO_CAMPIONI_TP53_definitivo_220719.txt") 
+ch <- odbcConnectAccess2007("C:/Users/mm_gr/Alma Mater Studiorum Università di Bologna/PROJECT SophiaPanel - TP53 - Documenti/TP53_DB_v1.accdb") 
+# odbcCloseAll()
 
-SNPS <- samples$CEL_NAME %>% unique
+
+samples <- sqlFetch(ch, "ELENCO_CAMPIONI_TP53_121119", as.is=TRUE)
+
+SNPS <- samples$CEL_NAME %>% unique %>% na.omit()
 
 rawcopydir <- "D:/RAW_DATA/RAWCOPY/alpha=10^-7/"
 

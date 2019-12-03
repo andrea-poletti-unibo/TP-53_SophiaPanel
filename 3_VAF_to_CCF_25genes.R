@@ -37,14 +37,14 @@ mutationCopyNumberToMutationBurden = function(copyNumber, totalCopyNumber, cellu
 ###############################################
 
 
-
-
 library(tidyverse)
 library(data.table)
+library(RODBC)
 
+ch <- odbcConnectAccess2007("C:/Users/mm_gr/Alma Mater Studiorum Università di Bologna/PROJECT SophiaPanel - TP53 - Documenti/TP53_DB_v1.accdb") 
+# odbcCloseAll()
 
-
-database <- fread("D:/analisi_in_corso/TP53/ELENCO_CAMPIONI_TP53_definitivo_220719.txt")
+database <- sqlFetch(ch, "ELENCO_CAMPIONI_TP53_121119", as.is=TRUE)
 
 database.info <- database %>% select( CEL_NAME, SEQ_ID, SNPnote= SNP)    #DNA_mut, file, PROJECT_CLONAL_SNP)
 
@@ -90,7 +90,7 @@ complete_over5$CCF <- ifelse(complete_over5$mutCN >= 1, # if mutCN is more then 
 complete_over5 %>% select(SEQ_ID, CEL_NAME, Gene.refGene, VAF, CN, purity, mutCN, CCF) %>% View
 
 # EXPORT 
-write_tsv(complete_over5, "D:/analisi_in_corso/TP53/CCF_results/GOLD.Converted_all_categories_over5_CCF.txt")
+write.table(complete_over5, "D:/analisi_in_corso/TP53/CCF_results/GOLD_Converted_all_categories_over5_CCF.txt", row.names = F, sep = "\t ")
 
 
 
@@ -102,7 +102,7 @@ import_under5 <- readxl::read_excel("D:/analisi_in_corso/TP53/GOLD.Converted_all
 import_under5_SNP <- left_join(import_under5, database.info, by=c("SEQ_ID"="SEQ_ID")) 
 
 #CHECK missing snp 
-import_under5_SNP %>% filter(is.na(CEL_NAME)) %>% select(conversion, SNPnote) %>% distinct() %>% View
+import_under5_SNP %>% filter(is.na(CEL_NAME)) %>% select( conversion, SNPnote) %>% distinct() %>% View
 
 
 # ________ ADD CN VALUES _________
@@ -129,9 +129,7 @@ complete_under5$CCF <- ifelse(complete_under5$mutCN >= 1, # if mutCN is more the
 complete_under5 %>% select(SEQ_ID, CEL_NAME, Gene.refGene, VAF, CN, purity, mutCN, CCF) %>% View
 
 # EXPORT 
-write_tsv(complete_under5, "D:/analisi_in_corso/TP53/CCF_results/GOLD.Converted_all_categories_under5_CCF.txt")
-
-
+write.table(complete_under5, "D:/analisi_in_corso/TP53/CCF_results/GOLD_Converted_all_categories_under5_CCF.txt", row.names = F, sep = "\t ")
 
 
 
@@ -172,6 +170,5 @@ complete_roche$CCF <- ifelse(complete_roche$mutCN >= 1, # if mutCN is more then 
 complete_roche %>% select(SEQ_ID, CEL_NAME, Gene.refGene, VAF, CN, purity, mutCN, CCF) %>% View
 
 # EXPORT 
-write_tsv(complete_roche, "D:/analisi_in_corso/TP53/CCF_results/GOLD_roche454_categories_A-B_CCF.txt")
-
+write.table(complete_roche, "D:/analisi_in_corso/TP53/CCF_results/GOLD_roche454_categories_A-B_CCF.txt", row.names = F, sep = "\t ")
 

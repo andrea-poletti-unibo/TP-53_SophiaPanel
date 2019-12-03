@@ -76,3 +76,26 @@ results.table <- spread(results,"gene", "CN")
 
 write_tsv(results,"D:/analisi_in_corso/TP53/CN_calls/calls/CN_Sophia_25genes_melted.tsv")
 write_tsv(results.table,"D:/analisi_in_corso/TP53/CN_calls/calls/CN_Sophia_25genes_table.tsv")
+
+
+
+######################### PURITY CORRECTED CN CALLS ###############################################
+
+purity <- fread("D:/analisi_in_corso/TP53/SNP_TP53_purity_reviewed.txt")
+
+res.table.purity <- left_join(results.table, purity, by=c("sample"="SNP_file"))
+
+genes <- genesLocations$gene %>% sort
+
+i=genes[1]
+
+for( i in genes) {
+  print(i)
+  res.table.purity[,paste0(i,"_adj")] = ((res.table.purity[,i] -2) / (res.table.purity$purity/100)) + 2
+  
+}
+
+res.table.purity %>% select(BRAF, purity, BRAF_adj) %>% View
+
+write_tsv(res.table.purity,"D:/analisi_in_corso/TP53/CN_calls/calls/CN_Sophia_25genes_table_PURITY_ADJ.tsv")
+
