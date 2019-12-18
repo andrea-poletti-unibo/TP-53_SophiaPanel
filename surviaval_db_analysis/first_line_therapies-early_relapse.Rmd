@@ -1,0 +1,185 @@
+---
+output: 
+  html_document: 
+    fig_height: 7
+    fig_width: 9
+---
+```{r}
+library(tidyverse)
+library(RODBC)
+
+db <- odbcConnectAccess2007("C:/Users/andre/Alma Mater Studiorum Università di Bologna/PROJECT SophiaPanel - TP53 - Documenti/TP53_DB_v1.accdb")
+
+df <- sqlFetch(db, "Query_Survival_Analysis")
+
+dat <- df %>% select(UPN, PFS_I_event, PFS_I_months, FIRST_LINE_FORMATTED:CORTICOSTEROID_CLASS)
+
+
+dat$ttp_0_12 <- ifelse( dat$PFS_I_months > 12, 0, dat$PFS_I_event )
+dat$ttp_0_24 <- ifelse( dat$PFS_I_months > 24, 0, dat$PFS_I_event )
+dat$ttp_0_36 <- ifelse( dat$PFS_I_months > 36, 0, dat$PFS_I_event )
+```
+
+```{r}
+sum(dat$ttp_0_12)
+sum(dat$ttp_0_24)
+sum(dat$ttp_0_36)
+sum(dat$PFS_I_event)
+```
+
+```{r include=FALSE}
+#____________ confronto terapie tra TUTTI i pts ricaduti ________________
+i <- 5
+
+results <- data.frame()
+
+for (i in 5:22){
+  
+  print(i)
+  NOME <- names(dat)[i]
+  
+  table.res <- gmodels::CrossTable(dat[,i], dat$PFS_I_event)
+  
+  tab <- table.res$t
+  
+  treatment_0_ttp_0 <- tab[1]
+  treatment_1_ttp_0 <- tab[2]
+  treatment_0_ttp_1 <- tab[3]
+  treatment_1_ttp_1 <- tab[4]
+  
+  fisher.res <- fisher.test(tab)
+  results <- rbind(results, 
+                   data.frame(name = NOME, 
+                              p = fisher.res$p.value %>% round(4),
+                              treat_0_ttp_0 = treatment_0_ttp_0,
+                              treat_1_ttp_0 = treatment_1_ttp_0,
+                              treat_0_ttp_1 = treatment_0_ttp_1,
+                              treat_1_ttp_1 = treatment_1_ttp_1,
+                              tot= treatment_0_ttp_0 + treatment_0_ttp_1 + treatment_1_ttp_0 + treatment_1_ttp_1
+                              ))
+}
+
+```
+
+```{r}
+
+results %>% arrange(p)
+
+```
+
+```{r}
+# plot histograms 
+dtomelt <- dat[,c(2,5:22)]
+
+dmelt <- data.table::melt(dtomelt, id.vars="PFS_I_event")
+
+ggplot(dmelt, aes(x= as.character(value), fill=as.character(dmelt$PFS_I_event))) + 
+  geom_bar() + 
+  facet_wrap(~variable) 
+```
+
+```{r include=FALSE}
+#____________ confronto terapie tra i pts ricaduti < 12 mesi ________________
+
+i <- 5
+results_0_12 <- data.frame()
+
+for (i in 5:22){
+  
+  print(i)
+  NOME <- names(dat)[i]
+  
+  table.res <- gmodels::CrossTable(dat[,i], dat$ttp_0_12)
+  
+  tab <- table.res$t
+  
+  treatment_0_ttp_0 <- tab[1]
+  treatment_1_ttp_0 <- tab[2]
+  treatment_0_ttp_1 <- tab[3]
+  treatment_1_ttp_1 <- tab[4]
+  
+  fisher.res <- fisher.test(tab)
+  results_0_12 <- rbind(results_0_12, 
+                   data.frame(name = NOME, 
+                              p = fisher.res$p.value %>% round(4),
+                              treat_0_ttp_0 = treatment_0_ttp_0,
+                              treat_1_ttp_0 = treatment_1_ttp_0,
+                              treat_0_ttp_1 = treatment_0_ttp_1,
+                              treat_1_ttp_1 = treatment_1_ttp_1,
+                              tot= treatment_0_ttp_0 + treatment_0_ttp_1 + treatment_1_ttp_0 + treatment_1_ttp_1
+                   ))
+}
+```
+
+```{r}
+
+results_0_12 %>% arrange(p)
+
+```
+
+```{r}
+
+# plot histograms 
+dtomelt <- dat[,c(23,5:22)]
+
+dmelt <- data.table::melt(dtomelt, id.vars="ttp_0_12")
+
+ggplot(dmelt, aes(x= as.character(value), fill=as.character(dmelt$ttp_0_12))) + 
+  geom_bar() + 
+  facet_wrap(~variable) 
+
+```
+
+
+
+```{r include=FALSE}
+#____________ confronto terapie tra i pts ricaduti < 24 mesi ________________
+
+i <- 5
+results_0_24 <- data.frame()
+
+for (i in 5:22){
+  
+  print(i)
+  NOME <- names(dat)[i]
+  
+  table.res <- gmodels::CrossTable(dat[,i], dat$ttp_0_12)
+  
+  tab <- table.res$t
+  
+  treatment_0_ttp_0 <- tab[1]
+  treatment_1_ttp_0 <- tab[2]
+  treatment_0_ttp_1 <- tab[3]
+  treatment_1_ttp_1 <- tab[4]
+  
+  fisher.res <- fisher.test(tab)
+  results_0_24 <- rbind(results_0_24, 
+                        data.frame(name = NOME, 
+                                   p = fisher.res$p.value %>% round(4),
+                                   treat_0_ttp_0 = treatment_0_ttp_0,
+                                   treat_1_ttp_0 = treatment_1_ttp_0,
+                                   treat_0_ttp_1 = treatment_0_ttp_1,
+                                   treat_1_ttp_1 = treatment_1_ttp_1,
+                                   tot= treatment_0_ttp_0 + treatment_0_ttp_1 + treatment_1_ttp_0 + treatment_1_ttp_1
+                        ))
+}
+
+```
+
+```{r}
+
+results_0_24 %>% arrange(p)
+
+```
+
+```{r}
+# plot histograms 
+dtomelt <- dat[,c(24,5:22)]
+
+dmelt <- data.table::melt(dtomelt, id.vars="ttp_0_24")
+
+ggplot(dmelt, aes(x= as.character(value), fill=as.character(dmelt$ttp_0_24))) + 
+  geom_bar() + 
+  facet_wrap(~variable) 
+
+```
