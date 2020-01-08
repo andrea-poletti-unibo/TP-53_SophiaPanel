@@ -1,6 +1,6 @@
 library(RODBC) 
 
-db <- odbcConnectAccess2007("C:/Users/mm_gr/Alma Mater Studiorum Università di Bologna/PROJECT SophiaPanel - TP53 - Documenti/TP53_DB_v1.accdb")
+db <- odbcConnectAccess2007("C:/Users/andre/Alma Mater Studiorum Università di Bologna/PROJECT SophiaPanel - TP53 - Documenti/TP53_DB_v1.accdb")
 # sqlTables(db)
 df <- sqlFetch(db, "Query_Survival_Analysis")
 
@@ -102,6 +102,7 @@ mutdel <- df %>% filter( TP53_adj < 1.9 & MUT_p53_D_SUB_CLON == 1)
 df$mut_del_event <- ifelse(df$TP53_adj < 1.9 & df$MUT_p53_D_SUB_CLON == 1, 1, 0)
 
 
+
 homdel <- df %>% filter( TP53_adj < 0.6 )
 df$homdel <- ifelse(df$TP53_adj < 0.6, 1, 0)
 
@@ -157,3 +158,25 @@ coxph(PFS ~ df$doubleHIT, data = df) %>% summary
 
 
 table(df$doubleHIT, df$double_del_LOH)
+
+
+
+#_______________
+
+
+ggsurvplot(survfit(OS ~ df$MUT_p53_D_SUB_CLON, data = df), pval = T, risk.table = T, xlab = "OS")
+ggsurvplot(survfit(PFS ~ df$MUT_p53_D_SUB_CLON, data = df), pval = T, risk.table = T, xlab = "PFS")
+
+coxph(OS ~ df$MUT_p53_D_SUB_CLON, data = df) %>% summary
+coxph(PFS ~ df$MUT_p53_D_SUB_CLON, data = df) %>% summary
+
+
+table(df$doubleHIT, df$double_del_LOH)
+
+GG <- df %>% filter(MUT_p53_D_SUB_CLON==1)
+
+GG$PROTOCOLLO %>% table
+mutdel$PROTOCOLLO %>% table
+
+GG %>% select(PROTOCOLLO, PFS_I_months, OS_MESI) %>% View
+
