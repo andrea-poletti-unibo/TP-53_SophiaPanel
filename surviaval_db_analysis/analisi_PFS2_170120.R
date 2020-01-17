@@ -64,6 +64,12 @@ prog_true %>% select( PFS_I_date, PFS_2_date, PFS_2_time, PFS_2_months) %>% View
 
 ################################## survival analysys ############################################################
 
+library(data.table)
+library(tidyverse)
+library(survival)
+library(survminer)
+library(clusteval)
+
 prog_true$flag <- ifelse(prog_true$PROTOCOLLO != "BO2005" & prog_true$PROTOCOLLO != "EMN02" & 
                            prog_true$TTP_I_months <= 24 & prog_true$Prog_I==1 &
                            prog_true$TP53_adj_D >= 1.9 & prog_true$MUT_p53_D_SUB_CLON ==0 , 
@@ -71,14 +77,14 @@ prog_true$flag <- ifelse(prog_true$PROTOCOLLO != "BO2005" & prog_true$PROTOCOLLO
 
 prog_true$flag %>% table
 
-
-
-
 DF2 <- prog_true %>% filter(flag==0)
 
-DF2$TP53_adj_R
-DF2$MUT_P53_R_SUB_CLON
 
+# ISS distribution Check
+DF2$ISS %>% table 
+
+
+# del 10%
 DF2$call10_del_TP53_D <- ifelse(DF2$TP53_adj_D <= 1.9 , 1, 0)
 DF2$call10_del_TP53_R <- ifelse(DF2$TP53_adj_R <= 1.9 , 1, 0)
 
@@ -89,9 +95,11 @@ DF2 %>% select(call10_del_TP53_D, call10_del_TP53_R, TP53_adj_D, TP53_adj_R) %>%
 
 table(DF2$call10_del_TP53_D, DF2$call10_del_TP53_R, useNA = c("always"))
 
-# 50%
+cor.test(DF2$call10_del_TP53_D, DF2$call10_del_TP53_R)
+cluster_similarity(DF2$call10_del_TP53_D, DF2$call10_del_TP53_R, similarity="jaccard", method="independence")
 
 
+# del 50%
 DF2$call50_del_TP53_D <- ifelse(DF2$TP53_adj_D <= 1.5 , 1, 0)
 DF2$call50_del_TP53_R <- ifelse(DF2$TP53_adj_R <= 1.5 , 1, 0)
 
@@ -102,30 +110,67 @@ DF2 %>% select(call10_del_TP53_D, call10_del_TP53_R, TP53_adj_D, TP53_adj_R) %>%
 
 table(DF2$call50_del_TP53_D, DF2$call50_del_TP53_R, useNA = c("always"))
 
-##########
+cor.test(DF2$call50_del_TP53_D, DF2$call50_del_TP53_R)
+cluster_similarity(DF2$call50_del_TP53_D, DF2$call50_del_TP53_R, similarity="jaccard", method="independence")
 
-library(data.table)
-library(tidyverse)
-library(survival)
-library(survminer)
 
-DF2$ISS %>% table
+#______________________
+# del 10% survival PFS2
+#______________________
 
 PFS2 <- Surv( time = DF2$PFS_2_months, event = DF2$PFS_2_event)
 
+# DEL at RELAPSE
 ggsurvplot(survfit(PFS2 ~ DF2$call10_del_TP53_R, data = DF2), pval = T, risk.table = T, xlab = "PFS")
 
 coxph(PFS2 ~ DF2$call10_del_TP53_R, data = DF2) %>% summary
 coxph(PFS2 ~ DF2$call10_del_TP53_R + strata(DF2$ISS) , data = DF2) %>% summary
 
-
+# DEL at DIAGNOSIS
 ggsurvplot(survfit(PFS2 ~ DF2$call10_del_TP53_D, data = DF2), pval = T, risk.table = T, xlab = "PFS")
 
 coxph(PFS2 ~ DF2$call10_del_TP53_D, data = DF2) %>% summary
 coxph(PFS2 ~ DF2$call10_del_TP53_D + strata(DF2$ISS) , data = DF2) %>% summary
 
+#______________________
+# mut survival PFS2
+#______________________
 
+cor.test(DF2$MUT_p53_D_SUB_CLON, DF2$MUT_P53_R_SUB_CLON)
+cluster_similarity(DF2$MUT_p53_D_SUB_CLON, DF2$MUT_P53_R_SUB_CLON, similarity="jaccard", method="independence")
 
+# MUT at RELAPSE
+ggsurvplot(survfit(PFS2 ~ DF2$MUT_P53_R_SUB_CLON, data = DF2), pval = T, risk.table = T, xlab = "PFS")
 
+coxph(PFS2 ~ DF2$MUT_P53_R_SUB_CLON, data = DF2) %>% summary
+coxph(PFS2 ~ DF2$MUT_P53_R_SUB_CLON + strata(DF2$ISS) , data = DF2) %>% summary
 
+# MUT at DIAGNOSIS
+ggsurvplot(survfit(PFS2 ~ DF2$MUT_p53_D_SUB_CLON, data = DF2), pval = T, risk.table = T, xlab = "PFS")
 
+coxph(PFS2 ~ DF2$MUT_p53_D_SUB_CLON, data = DF2) %>% summary
+coxph(PFS2 ~ DF2$MUT_p53_D_SUB_CLON + strata(DF2$ISS) , data = DF2) %>% summary
+
+#______________________
+# mut-del survival PFS2
+#______________________
+
+DF2$mut_del_R <- ifelse(DF2$call10_del_TP53_R==1 & DF2$MUT_P53_R_SUB_CLON ==1, 1, 0)
+DF2$mut_del_R %>% table
+
+DF2$mut_del_D <- ifelse(DF2$call10_del_TP53_D==1 & DF2$MUT_p53_D_SUB_CLON ==1, 1, 0)
+DF2$mut_del_D %>% table
+
+table(DF2$mut_del_D, DF2$mut_del_R)
+
+# MUT-DEL at RELAPSE
+ggsurvplot(survfit(PFS2 ~ DF2$mut_del_R, data = DF2), pval = T, risk.table = T, xlab = "PFS")
+
+coxph(PFS2 ~ DF2$mut_del_R, data = DF2) %>% summary
+coxph(PFS2 ~ DF2$mut_del_R + strata(DF2$ISS) , data = DF2) %>% summary
+
+# MUT-DEL at DIAGNOSIS
+ggsurvplot(survfit(PFS2 ~ DF2$mut_del_D, data = DF2), pval = T, risk.table = T, xlab = "PFS")
+
+coxph(PFS2 ~ DF2$MUT_p53_D_SUB_CLON, data = DF2) %>% summary
+coxph(PFS2 ~ DF2$MUT_p53_D_SUB_CLON + strata(DF2$ISS) , data = DF2) %>% summary
