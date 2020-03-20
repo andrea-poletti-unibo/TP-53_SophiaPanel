@@ -2,7 +2,7 @@
 library(tidyverse)
 library(RODBC)
 
-db <- odbcConnectAccess2007("C:/Users/mm_gr/Alma Mater Studiorum Università di Bologna/PROJECT SophiaPanel - TP53 - Documenti/TP53_DB_v1.accdb")
+db <- odbcConnectAccess2007("C:/Users/andre/Alma Mater Studiorum Università di Bologna/PROJECT SophiaPanel - TP53 - Documenti/TP53_DB_v1.accdb")
 
 df <- sqlFetch(db, "Query_Survival_Analysis")
 ```
@@ -124,6 +124,19 @@ ggsurvplot(survfit(PFS ~ DF$Fish_T_4_14, data = DF), pval = T, risk.table = T, x
 
 coxph(OS ~ DF$Fish_T_4_14 + strata(ISS), data = DF) %>% summary
 coxph(PFS ~ DF$Fish_T_4_14 + strata(ISS), data = DF) %>% summary
+```
+
+
+# MUT_p53_D_SUB_CLON 
+```{r}
+sum(DF$MUT_p53_D_SUB_CLON, na.rm = T)
+
+
+ggsurvplot(survfit(OS ~ DF$MUT_p53_D_SUB_CLON, data = DF), pval = T, risk.table = T, xlab = "OS")
+ggsurvplot(survfit(PFS ~ DF$MUT_p53_D_SUB_CLON, data = DF), pval = T, risk.table = T, xlab = "PFS")
+
+coxph(OS ~ DF$MUT_p53_D_SUB_CLON + strata(ISS), data = DF) %>% summary
+coxph(PFS ~ DF$MUT_p53_D_SUB_CLON + strata(ISS), data = DF) %>% summary
 ```
 
 
