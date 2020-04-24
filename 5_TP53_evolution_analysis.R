@@ -200,13 +200,6 @@ mutdels %>% ggplot(aes(Phase,count, fill=state)) +
 
 
 
-with(DF1, gmodels::CrossTable(call10_del_TP53_D, Fish_DEL_17, prop.r = F, prop.c = F, prop.chisq = F))
 
-SNP_call10_del_TP53_D <- DF1$call10_del_TP53_D
-Fish_DEL_17p <- DF1$Fish_DEL_17
-Fish_DEL_17p[is.na(Fish_DEL_17p)] <- "NA"
 
-gmodels::CrossTable(SNP_call10_del_TP53_D, Fish_DEL_17p, prop.r = F, prop.c = F, prop.chisq = F)
-
-table(DF1$call10_del_TP53_D, DF1$Fish_DEL_17, useNA = "always")
      
