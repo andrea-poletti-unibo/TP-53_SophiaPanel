@@ -1,15 +1,29 @@
-library(RODBC) 
+# library(RODBC) 
+library(odbc)
+library(DBI)
 library(data.table)
 library(tidyverse)
 library(survival)
 library(survminer)
 
+# devtools::install_version('odbc', '1.2.2', repos="https://cran.rstudio.com/" )
 
-db <- odbcConnectAccess2007("C:/Users/andre/Alma Mater Studiorum Università di Bologna/PROJECT SophiaPanel - TP53 - Documenti/TP53_DB_v1.accdb")
+# db <- odbcConnectAccess2007("C:/Users/mm_gr/Alma Mater Studiorum Università di Bologna/PROJECT SophiaPanel - TP53 - Documenti/TP53_DB_v1.accdb")
 # sqlTables(db)
-df <- sqlFetch(db, "Query_Survival_Analysis")
+# df <- sqlFetch(db, "Query_Survival_Analysis")
 
 
+odbcListDrivers()
+
+# full file path to Access DB
+file_path <- "C:/Users/mm_gr/Alma Mater Studiorum Università di Bologna/PROJECT SophiaPanel - TP53 - Documenti/TP53_DB_v1.accdb"
+
+# pass MS Access file path to connection string
+accdb_con <- dbConnect(drv = odbc(), .connection_string = paste0("Driver={Microsoft Access Driver (*.mdb, *.accdb)};DBQ=",file_path,";"))
+
+dbListTables(accdb_con)
+
+df <- DBI::dbReadTable(accdb_con, "Query_Survival_Analysis")
 
 
 df$flag <- ifelse(df$PROTOCOLLO != "BO2005" & df$PROTOCOLLO != "EMN02" & 
