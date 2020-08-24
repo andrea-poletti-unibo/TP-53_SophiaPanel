@@ -110,6 +110,7 @@ Q_Dia <- sqlFetch(db, "Query_Survival_Analysis")
 # query per tutti i pazienti del DB che hanno i dati molecolari di relapse (65)
 Q_Rel <- sqlFetch(db, "Copia di Query_Survival_Analysis")
 
+pts_id <- sqlFetch(db,"valid_pts_ID_table")
 
 #=========== data set up diagnosis ========
 
@@ -160,19 +161,31 @@ DF2 <- prog_true %>% filter(flag==0)
 
 DF2$del_TP53_SNP_R <- ifelse(DF2$TP53_adj_R < 1.9, 1, 0)
 
+#--- ADD PTS ID ----
+
+DF1.1 <- left_join(DF1, pts_id )
+DF1.1$pt_ID %>% unique() %>% length()
+DF1 <- DF1.1 %>% filter(!is.na(pt_ID))
+
+
+DF2.1 <- left_join(DF2, pts_id )
+DF2.1 %>% select(UPN, pt_ID) %>% View
+DF2 <- DF2.1 %>% filter(!is.na(pt_ID))
 
 
 #============== creation of databse for swimmer plot ===============
 
-data_D <- DF1 %>% select(UPN, MUT_p53_D_SUB_CLON, del_TP53_SNP_D, PFS_I_months, PFS_I_event, OS_MESI, OS_event_death)
+data_D <- DF1 %>% select(pt_ID, MUT_p53_D_SUB_CLON, del_TP53_SNP_D, PFS_I_months, PFS_I_event, OS_MESI, OS_event_death)
 
-data_R <- DF2 %>% select(UPN, MUT_P53_R_SUB_CLON, del_TP53_SNP_R, PFS_2_event, PFS_2_months )
+data_R <- DF2 %>% select(pt_ID, MUT_P53_R_SUB_CLON, del_TP53_SNP_R, PFS_2_event, PFS_2_months )
 
-pts_all <- full_join(data_D, data_R, by = "UPN") %>% 
-  select(UPN, MUT_p53_D_SUB_CLON, MUT_P53_R_SUB_CLON, 
+pts_all <- full_join(data_D, data_R, by = "pt_ID") %>% 
+  select(pt_ID, MUT_p53_D_SUB_CLON, MUT_P53_R_SUB_CLON, 
          del_TP53_SNP_D, del_TP53_SNP_R, 
-         PFS_I_months:OS_event_death, PFS_2_event,PFS_2_months) %>% 
-  filter(UPN != "3581") #remove pts UPN 3581 because unvalutable SNP purity at Diagnosis (SNP218) missing data
+         PFS_I_months:OS_event_death, PFS_2_event,PFS_2_months)
+
+ 
+# old  filter(UPN != "3581") #remove pts UPN 3581 because unvalutable SNP purity at Diagnosis (SNP218) missing data
 
 
 
@@ -180,45 +193,48 @@ pts_swimmer <- pts_all %>% filter(MUT_p53_D_SUB_CLON==1 | MUT_P53_R_SUB_CLON==1 
 
 pts_swimmer$Second_PFS_months <- pts_swimmer$PFS_I_months + pts_swimmer$PFS_2_months
 
-pts_swimmer.m = melt(pts_swimmer %>% select(UPN, OS_MESI, PFS_I_months, MUT_p53_D_SUB_CLON, MUT_P53_R_SUB_CLON, del_TP53_SNP_D, del_TP53_SNP_R),
-             id.var=c("UPN","OS_MESI","PFS_I_months"))
+pts_swimmer.m = melt(pts_swimmer %>% select(pt_ID, OS_MESI, PFS_I_months, MUT_p53_D_SUB_CLON, MUT_P53_R_SUB_CLON, del_TP53_SNP_D, del_TP53_SNP_R),
+             id.var=c("pt_ID","OS_MESI","PFS_I_months"))
 
 
-pts_swimmer.m.D = melt(pts_swimmer %>% select(UPN, MUT_p53_D_SUB_CLON, del_TP53_SNP_D),
-                       id.var=c("UPN"))
+pts_swimmer.m.D = melt(pts_swimmer %>% select(pt_ID, MUT_p53_D_SUB_CLON, del_TP53_SNP_D),
+                       id.var=c("pt_ID"))
 pts_swimmer.m.D$value[pts_swimmer.m.D$value==0] <- NA
 
 
-pts_swimmer.m.R = melt(pts_swimmer %>% select(UPN, PFS_I_months, MUT_P53_R_SUB_CLON, del_TP53_SNP_R),
-                       id.var=c("UPN", "PFS_I_months"))
+pts_swimmer.m.R = melt(pts_swimmer %>% select(pt_ID, PFS_I_months, MUT_P53_R_SUB_CLON, del_TP53_SNP_R),
+                       id.var=c("pt_ID", "PFS_I_months"))
 pts_swimmer.m.R$valuetime <- ifelse(pts_swimmer.m.R$value == 1, pts_swimmer.m.R$PFS_I_months, NA)
 
 
 # pts_swimmer.alive = pts_swimmer %>% select(UPN, OS_event_death, OS_MESI)
 
-ORDER <- pts_swimmer$OS_MESI %>% order()
 
-pts_swimmer$UPN <- factor(pts_swimmer$UPN, levels = pts_swimmer$UPN[ORDER], ordered = T)
 
-pts_swimmer %>% ggplot(aes(UPN, OS_MESI)) +
+
+ORDER <- order(!is.na(pts_swimmer$MUT_P53_R_SUB_CLON) & !is.na(pts_swimmer$del_TP53_SNP_R), pts_swimmer$OS_MESI)
+
+pts_swimmer$pt_ID <- factor(pts_swimmer$pt_ID, levels = pts_swimmer$pt_ID[ORDER], ordered = T)
+
+pts_swimmer %>% ggplot(aes(pt_ID, OS_MESI)) +
   
   geom_bar(stat="identity", colour="black", fill="grey90", width=0.8)+
   
   # alterations D
   geom_point(data=pts_swimmer.m.D, 
-             aes(UPN, -value, colour=variable, shape=variable), size=4) +
+             aes(pt_ID, -value, colour=variable, shape=variable), size=4) +
   
   # alterations R
   geom_point(data=pts_swimmer.m.R, 
-             aes(UPN, valuetime, colour=variable, shape=variable), size=4) +
+             aes(pt_ID, valuetime, colour=variable, shape=variable), size=4) +
   
   # deaths
   geom_point(data=pts_swimmer %>% filter(OS_event_death==1),
-             aes(UPN, OS_MESI+1), size=2.5, shape=4) +
+             aes(pt_ID, OS_MESI+1), size=2.5, shape=4) +
   
   # alive
   geom_segment(data=pts_swimmer %>% filter(OS_event_death==0),
-               aes(x=UPN, xend=UPN, y=OS_MESI + 0.5, yend=OS_MESI + 2),
+               aes(x=pt_ID, xend=pt_ID, y=OS_MESI + 0.5, yend=OS_MESI + 2),
                pch=25, size=0.5, arrow=arrow(type="closed", length=unit(0.07,"in"))) +
   
   # relapsed with EVAL
@@ -227,16 +243,77 @@ pts_swimmer %>% ggplot(aes(UPN, OS_MESI)) +
   
   # relapsed no EVAL
   geom_point(data=pts_swimmer %>% filter(PFS_I_event==1 & (is.na(MUT_P53_R_SUB_CLON) | is.na(del_TP53_SNP_R))),
-             aes(x=UPN, y= PFS_I_months-0.8), shape=1, size=3) +
+             aes(x=pt_ID, y= PFS_I_months-0.8), shape=1, size=3) +
   
   # SECOND relapsed no EVAL
   geom_point(data=pts_swimmer %>% filter(PFS_2_event==1),
-             aes(x=UPN, y= Second_PFS_months-0.8), shape=1, size=3) +
+             aes(x=pt_ID, y= Second_PFS_months-0.8), shape=1, size=3) +
   
   
   coord_flip() +
   
   scale_shape_manual(values = c(20,20,8,8) ) +
+  # scale_fill_manual(values=hcl(seq(15,375,length.out=5)[1:4],100,70)) +
+  # scale_colour_manual(values=c(hcl(seq(15,375,length.out=3)[1:2],100,40),"black")) +
+  scale_y_continuous(limits=c(-1,172), breaks=seq(0,180,10), expand = expand_scale(mult = c(0.01,0))) +
+  
+  labs(y="Months") +
+  theme_bw() +
+  theme(panel.grid.minor=element_blank(),
+        panel.grid.major=element_blank())
+
+
+######################### ONLY RELAPSED EVAL #######################
+
+RE_pts_swimmer <- pts_swimmer %>% filter(!is.na(MUT_P53_R_SUB_CLON) & !is.na(del_TP53_SNP_R))
+RE_pts_swimmer.m <- pts_swimmer.m %>% filter(pt_ID %in% unique(RE_pts_swimmer$pt_ID))
+RE_pts_swimmer.m.D <- pts_swimmer.m.D %>% filter(pt_ID %in% unique(RE_pts_swimmer$pt_ID))
+RE_pts_swimmer.m.R <- pts_swimmer.m.R %>% filter(pt_ID %in% unique(RE_pts_swimmer$pt_ID))
+
+
+ORDER <- order( RE_pts_swimmer$OS_MESI)
+
+RE_pts_swimmer$pt_ID <- factor(RE_pts_swimmer$pt_ID, levels = RE_pts_swimmer$pt_ID[ORDER], ordered = T)
+
+RE_pts_swimmer %>% ggplot(aes(pt_ID, OS_MESI)) +
+  
+  geom_bar(stat="identity", colour="black", fill="grey90", width=0.8)+
+  
+  # alterations D
+  geom_point(data=RE_pts_swimmer.m.D, 
+             aes(pt_ID, -value, colour=variable, shape=variable), size=4) +
+  
+  # alterations R
+  geom_point(data=RE_pts_swimmer.m.R, 
+             aes(pt_ID, valuetime, colour=variable, shape=variable), size=4) +
+  
+  # deaths
+  geom_point(data=RE_pts_swimmer %>% filter(OS_event_death==1),
+             aes(pt_ID, OS_MESI+1), size=2.5, shape=4) +
+  
+  # alive
+  geom_segment(data=RE_pts_swimmer %>% filter(OS_event_death==0),
+               aes(x=pt_ID, xend=pt_ID, y=OS_MESI + 0.5, yend=OS_MESI + 2),
+               pch=25, size=0.5, arrow=arrow(type="closed", length=unit(0.07,"in"))) +
+  
+  # relapsed with EVAL
+  geom_point(data=RE_pts_swimmer %>% filter(PFS_I_event==1 & !is.na(MUT_P53_R_SUB_CLON) & !is.na(del_TP53_SNP_R)),
+             aes(x=UPN, y= PFS_I_months-0.8), shape=124, size=3) +
+  
+  # relapsed no EVAL
+  geom_point(data=RE_pts_swimmer %>% filter(PFS_I_event==1 & (is.na(MUT_P53_R_SUB_CLON) | is.na(del_TP53_SNP_R))),
+             aes(x=pt_ID, y= PFS_I_months-0.8), shape=1, size=3) +
+  
+  # SECOND relapsed no EVAL
+  geom_point(data=RE_pts_swimmer %>% filter(PFS_2_event==1),
+             aes(x=pt_ID, y= Second_PFS_months-0.8), shape=1, size=3) +
+  
+  
+  coord_flip() +
+  
+  scale_colour_discrete(name = "Event", labels = c("del TP53 Diagnosis", "del TP53 Relapse", "mut TP53 Diagnosis","mut TP53 Relapse")) +
+  scale_shape_manual(values = c(20,20,8,8), name = "Event", labels = c("del TP53 Diagnosis", "del TP53 Relapse", "mut TP53 Diagnosis","mut TP53 Relapse") ) +
+  
   # scale_fill_manual(values=hcl(seq(15,375,length.out=5)[1:4],100,70)) +
   # scale_colour_manual(values=c(hcl(seq(15,375,length.out=3)[1:2],100,40),"black")) +
   scale_y_continuous(limits=c(-1,172), breaks=seq(0,180,10), expand = expand_scale(mult = c(0.01,0))) +
