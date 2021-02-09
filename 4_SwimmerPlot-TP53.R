@@ -100,7 +100,7 @@ data.pts %>% ggplot(aes(UPN, MESI)) +
 
 library(RODBC)
 
-db <- odbcConnectAccess2007("C:/Users/andre/Alma Mater Studiorum Università di Bologna/PROJECT SophiaPanel - TP53 - Documenti/TP53_DB_v1.accdb")
+db <- odbcConnectAccess2007("C:/Users/mm_gr/Alma Mater Studiorum Università di Bologna/PROJECT SophiaPanel - TP53 - Documenti/TP53_DB_v1.accdb")
 
 TABS <- sqlTables(db)$TABLE_NAME
 TABS
@@ -169,7 +169,7 @@ DF1 <- DF1.1 %>% filter(!is.na(pt_ID))
 
 
 DF2.1 <- left_join(DF2, pts_id )
-DF2.1 %>% select(UPN, pt_ID) %>% View
+# DF2.1 %>% select(UPN, pt_ID) %>% View
 DF2 <- DF2.1 %>% filter(!is.na(pt_ID))
 
 
@@ -279,6 +279,18 @@ RE_pts_swimmer %>% ggplot(aes(pt_ID, OS_MESI)) +
   
   geom_bar(stat="identity", colour="black", fill="grey90", width=0.8)+
   
+  # relapsed with EVAL
+  geom_point(data=RE_pts_swimmer %>% filter(PFS_I_event==1 & !is.na(MUT_P53_R_SUB_CLON) & !is.na(del_TP53_SNP_R)),
+             aes(x=pt_ID, y= PFS_I_months-0.8), shape=05, size=3) +
+  
+  # relapsed no EVAL
+  geom_point(data=RE_pts_swimmer %>% filter(PFS_I_event==1 & (is.na(MUT_P53_R_SUB_CLON) | is.na(del_TP53_SNP_R))),
+             aes(x=pt_ID, y= PFS_I_months-0.8), shape=06, size=3) +
+  
+  # SECOND relapsed no EVAL
+  geom_point(data=RE_pts_swimmer %>% filter(PFS_2_event==1),
+             aes(x=pt_ID, y= Second_PFS_months-0.8), shape=06, size=3) +
+  
   # alterations D
   geom_point(data=RE_pts_swimmer.m.D, 
              aes(pt_ID, -value, colour=variable, shape=variable), size=4) +
@@ -289,25 +301,12 @@ RE_pts_swimmer %>% ggplot(aes(pt_ID, OS_MESI)) +
   
   # deaths
   geom_point(data=RE_pts_swimmer %>% filter(OS_event_death==1),
-             aes(pt_ID, OS_MESI+1), size=2.5, shape=4) +
+             aes(pt_ID, OS_MESI+2), size=2.5, shape=4) +
   
   # alive
   geom_segment(data=RE_pts_swimmer %>% filter(OS_event_death==0),
-               aes(x=pt_ID, xend=pt_ID, y=OS_MESI + 0.5, yend=OS_MESI + 2),
+               aes(x=pt_ID, xend=pt_ID, y=OS_MESI + 0.5, yend=OS_MESI + 3),
                pch=25, size=0.5, arrow=arrow(type="closed", length=unit(0.07,"in"))) +
-  
-  # relapsed with EVAL
-  geom_point(data=RE_pts_swimmer %>% filter(PFS_I_event==1 & !is.na(MUT_P53_R_SUB_CLON) & !is.na(del_TP53_SNP_R)),
-             aes(x=UPN, y= PFS_I_months-0.8), shape=124, size=3) +
-  
-  # relapsed no EVAL
-  geom_point(data=RE_pts_swimmer %>% filter(PFS_I_event==1 & (is.na(MUT_P53_R_SUB_CLON) | is.na(del_TP53_SNP_R))),
-             aes(x=pt_ID, y= PFS_I_months-0.8), shape=1, size=3) +
-  
-  # SECOND relapsed no EVAL
-  geom_point(data=RE_pts_swimmer %>% filter(PFS_2_event==1),
-             aes(x=pt_ID, y= Second_PFS_months-0.8), shape=1, size=3) +
-  
   
   coord_flip() +
   
@@ -323,3 +322,9 @@ RE_pts_swimmer %>% ggplot(aes(pt_ID, OS_MESI)) +
   theme(panel.grid.minor=element_blank(),
         panel.grid.major=element_blank())
 
+
+dummy <- data.frame(x=c(1,2,3,4),y=c(1,2,3,4),event=c("death","alive","relapse analyzed", "relapse not analyzed"))
+
+dummy %>% ggplot(aes(x,y)) + geom_point(aes(shape=event)) + 
+  scale_shape_manual(values = c(4,95,5,6), name="Event", labels=c("death","alive","relapse analyzed", "relapse not analyzed")) +
+  theme_bw() 

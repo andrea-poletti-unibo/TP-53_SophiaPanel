@@ -3,7 +3,7 @@ library(RODBC)
 library(data.table)
 library(tidyverse)
 
-db <- odbcConnectAccess2007("C:/Users/andre//Alma Mater Studiorum Università di Bologna/PROJECT SophiaPanel - TP53 - Documenti/TP53_DB_v1.accdb")
+db <- odbcConnectAccess2007("C:/Users/mm_gr/Alma Mater Studiorum Università di Bologna/PROJECT SophiaPanel - TP53 - Documenti/TP53_DB_v1.accdb")
 
 TABS <- sqlTables(db)$TABLE_NAME
 TABS
@@ -185,18 +185,17 @@ mutdels <-data.frame(Phase= c("Diagnosis","Relapse","Diagnosis","Relapse","Diagn
                                sum(evoldf$TP53_alteration=="DH")/53)
                      )
 
-mutdels$perc <-c( (mutdels$count[c(1,3,5,7)]/143) %>% round(2),
-                  (mutdels$count[c(2,4,6,8)]/53) %>% round(2) )
+
 
 mutdels %>% ggplot(aes(Phase,count, fill=state)) + 
   geom_bar(position = "fill", stat="identity") +
-  geom_text(aes(label=count), vjust="top", hjust=1, color="white", position = position_fill(), size=3.5) +
+  geom_text(aes(label=count), vjust=1.2, hjust=1, color="black", position = position_fill(), size=3.5) +
   geom_text(aes(label=(paste0("(",perc %>% round(3) %>% `*`(100),"%)"))), 
-            vjust="top",hjust=-0.1, color="white", position = position_fill(), size=3.5) +
-  ggtitle("TP53 Alterations proportions and frequency") +
-  scale_fill_brewer(palette="RdYlBu") +
+            vjust=1.2,hjust=-0.1, color="black", position = position_fill(), size=3.5) +
+  scale_fill_brewer(palette="RdYlBu", labels = c("Double Hit", "Only mut", "Only del", "Normal")) +
   scale_y_continuous(labels = scales::percent) +
-  ylab("percentage")
+  ylab("Percentage") +
+  theme_minimal()
 
 
 
