@@ -198,4 +198,72 @@ mutdel$PROTOCOLLO %>% table
 
 GG %>% select(PROTOCOLLO, PFS_I_months, OS_MESI) %>% View
 
-# =======
+#================
+
+# CAVO request 09/02/2021 
+
+# 1) 97 pts (no del - no mut) vs 5 (only mut)
+
+df$TP53_mutation_no_del <- ifelse(df$call10_del_TP53==0 & df$MUT_p53_D_SUB_CLON==1, 1,0)
+
+gmodels::CrossTable(df$call10_del_TP53, df$MUT_p53_D_SUB_CLON, prop.r = F, prop.c = F, prop.t = F, prop.chisq = F)
+
+df$call10_del_TP53 %>% sum
+
+
+df3 <- df %>% filter(call10_del_TP53 == 0) # only no del - 97 (no del - no mut) vs 5 (only mut)
+
+
+OS3 <- Surv( time = df3$OS_MESI, event = df3$OS_event_death)
+PFS3 <- Surv( time = df3$PFS_I_months, event = df3$PFS_I_event)
+
+
+ggsurvplot(survfit(OS3 ~ df3$TP53_mutation_no_del, data = df3), pval = T, risk.table = T, xlab = "OS")
+ggsurvplot(survfit(PFS3 ~ df3$TP53_mutation_no_del, data = df3), pval = T, risk.table = T, xlab = "PFS")
+
+
+# 2) only mut + only del (39 pts) vs no del no mut (97 pts)
+
+df4 <- df %>% filter(!(MUT_p53_D_SUB_CLON==1 & call10_del_TP53==1)) # only no del - 97 (no del - no mut) vs 5 (only mut)
+gmodels::CrossTable(df4$call10_del_TP53, df4$MUT_p53_D_SUB_CLON, prop.r = F, prop.c = F, prop.t = F, prop.chisq = F)
+
+
+OS4 <- Surv( time = df4$OS_MESI, event = df4$OS_event_death)
+PFS4 <- Surv( time = df4$PFS_I_months, event = df4$PFS_I_event)
+
+
+df4$del_only_AND_mut_only <- ifelse(df4$call10_del_TP53==1 & df4$MUT_p53_D_SUB_CLON==0 |df4$call10_del_TP53==0 & df4$MUT_p53_D_SUB_CLON==1, 1, 0 )
+
+df4$del_only_AND_mut_only %>% sum
+
+
+ggsurvplot(survfit(OS4 ~ df4$del_only_AND_mut_only, data = df4), pval = T, risk.table = T, xlab = "OS")
+ggsurvplot(survfit(PFS4 ~ df4$del_only_AND_mut_only, data = df4), pval = T, risk.table = T, xlab = "PFS")
+
+
+
+# 3) double hit (7 pts) vs no del no mut (97 pts)
+
+df5 <- df %>% filter(!(MUT_p53_D_SUB_CLON==1 & call10_del_TP53==0 | MUT_p53_D_SUB_CLON==0 & call10_del_TP53==1)) # only no del - 97 (no del - no mut) vs 5 (only mut)
+gmodels::CrossTable(df5$call10_del_TP53, df5$MUT_p53_D_SUB_CLON, prop.r = F, prop.c = F, prop.t = F, prop.chisq = F)
+
+
+OS5 <- Surv( time = df5$OS_MESI, event = df5$OS_event_death)
+PFS5 <- Surv( time = df5$PFS_I_months, event = df5$PFS_I_event)
+
+df5$Double_Hit <- ifelse(df5$MUT_p53_D_SUB_CLON==1 & df5$call10_del_TP53==1, 1, 0)
+df5$Double_Hit %>% sum
+
+ggsurvplot(survfit(OS5 ~ df5$Double_Hit, data = df5), pval = T, risk.table = T, xlab = "OS")
+ggsurvplot(survfit(PFS5 ~ df5$Double_Hit, data = df5), pval = T, risk.table = T, xlab = "PFS")
+
+
+# 4) three curves
+
+df$group <- ifelse(df$call10_del_TP53==1 & df$MUT_p53_D_SUB_CLON==1, "Double_Hit", ifelse(df$call10_del_TP53==0 & df$MUT_p53_D_SUB_CLON==0, "WT", "One_Hit"))
+df$group %>% table
+
+
+
+ggsurvplot(survfit(OS ~ df$group, data = df), pval = T, risk.table = T, xlab = "OS")
+ggsurvplot(survfit(PFS ~ df$group, data = df), pval = T, risk.table = T, xlab = "PFS")
