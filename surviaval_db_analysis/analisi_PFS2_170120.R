@@ -54,11 +54,10 @@ prog_true %>% select(Prog_II, data_II_relapse, OS_event_death, Date_of_death, LA
 # calulate the PFS_2_time
 
 prog_true$PFS_2_time <- prog_true$PFS_2_date - prog_true$PFS_I_date
-prog_true %>% select( PFS_I_date, PFS_2_date, PFS_2_time) %>% View
 
 # calulate the PFS_2_months
 
-prog_true$PFS_2_months <- round(prog_true$PFS_2_time / 30.5, 0) 
+prog_true$PFS_2_months <- round(prog_true$PFS_2_time / 30.5, 0) %>% as.numeric()
 prog_true %>% select( PFS_I_date, PFS_2_date, PFS_2_time, PFS_2_months) %>% View
 
 
