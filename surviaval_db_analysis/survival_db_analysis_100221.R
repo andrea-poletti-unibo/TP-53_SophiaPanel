@@ -55,7 +55,7 @@ df$PFS_I_event[df$PFS_I_months>cutoff] <- 0
 df$PFS_I_months[df$PFS_I_months>cutoff] <- cutoff
 
 
-#________ compute second PFS ________ 
+#________ compute PFS2 ________ 
 # PFS2 is defined as thetime from randomisation (or registration, in non-randomised trials) 
 # to second objective disease progression, or death from any cause, whichever first. 
 # https://www.ema.europa.eu/en/documents/scientific-guideline/appendix-1-guideline-evaluation-anticancer-medicinal-products-man-methodological-consideration-using_en.pdf
@@ -65,9 +65,9 @@ df$PFS_I_months[df$PFS_I_months>cutoff] <- cutoff
 df$Prog_II[is.na(df$Prog_II)] <- 0
 
 
-# calcolo nuova variabile = PFS_2_event
-df$PFS_2_event <- ifelse( df$Prog_II == 1 | df$OS_event_death == 1, 1, 0)
-df$PFS_2_event %>% table
+# calcolo nuova variabile = secondPFS_event
+df$secondPFS_event <- ifelse( df$Prog_II == 1 | df$OS_event_death == 1, 1, 0)
+df$secondPFS_event %>% table
 
 # convert the dates in correct Date format
 df$Date0_of_start_IND_therapy <- as.Date(df$Date0_of_start_IND_therapy, origin="1970-01-01")
@@ -76,31 +76,31 @@ df$Date_of_death <- as.Date(df$Date_of_death, origin="1970-01-01")
 df$LAST_FULLOW_UP <- as.Date(df$LAST_FULLOW_UP, origin="1970-01-01")
 df$PFS_I_date <- as.Date(df$PFS_I_date, origin="1970-01-01")
 
-# calcolo nuova variabile = PFS_2_date
-df$PFS_2_date <- dplyr::if_else(df$Prog_II == 1, 
+# calcolo nuova variabile = secondPFS_date
+df$secondPFS_date <- dplyr::if_else(df$Prog_II == 1, 
                                        as.Date(df$data_II_relapse, origin="1970-01-01"), 
                                        dplyr::if_else(df$OS_event_death == 1,
                                                       as.Date(df$Date_of_death, origin="1970-01-01"), 
                                                       as.Date(df$LAST_FULLOW_UP,origin="1970-01-01")
                                        ))
 
-df$secondPFS_event <- ifelse(df$Prog_II==1,1, ifelse(df$OS_event_death==1,1,0))
+df$twoPFS_event <- ifelse(df$Prog_II==1,1, ifelse(df$OS_event_death==1,1,0))
 
 
-# calulate the secondPFS_time
-df$secondPFS_time <- df$PFS_2_date - df$Date0_of_start_IND_therapy
+# calulate the twoPFS_time
+df$twoPFS_time <- df$secondPFS_date - df$Date0_of_start_IND_therapy
 
-# calulate the PFS_2_months
-df$secondPFS_months <- round(df$secondPFS_time / 30.5, 0) %>% as.numeric
+# calulate the secondPFS_months
+df$twoPFS_months <- round(df$twoPFS_time / 30.5, 0) %>% as.numeric
 
 df %>% select(LAST_FULLOW_UP,
               Date0_of_start_IND_therapy, 
               PFS_I_date, PFS_I_months, data_II_relapse,
-              OS_MESI, PFS_2_date, 
-              secondPFS_time, 
-              secondPFS_months, 
+              OS_MESI, secondPFS_date, 
+              twoPFS_time, 
+              twoPFS_months, 
               Date_of_death, 
-              secondPFS_event, 
+              twoPFS_event, 
               OS_event_death, Prog_I,
               Prog_II) %>% View
 
@@ -112,7 +112,7 @@ df %>% select(LAST_FULLOW_UP,
 
 OS <- Surv( time = df$OS_MESI, event = df$OS_event_death)
 PFS <- Surv( time = df$PFS_I_months, event = df$PFS_I_event)
-secondPFS <- Surv( time=df$secondPFS_months, event = df$secondPFS_event)
+twoPFS <- Surv( time=df$twoPFS_months, event = df$twoPFS_event)
 
 
 ##################################################################################
@@ -133,7 +133,7 @@ df2 <- df %>% filter(call10_del_TP53 == 0) # only no del - 97 (no del - no mut) 
 
 OS2 <- Surv( time = df2$OS_MESI, event = df2$OS_event_death)
 PFS2 <- Surv( time = df2$PFS_I_months, event = df2$PFS_I_event)
-secondPFS2 <- Surv( time=df2$secondPFS_months, event = df2$secondPFS_event)
+twoPFS2 <- Surv( time=df2$twoPFS_months, event = df2$twoPFS_event)
 
 
 gg <- ggsurvplot(survfit(OS2 ~ df2$TP53_mutation_no_del, data = df2), pval = T, risk.table = T, xlab = "OS",
@@ -154,13 +154,13 @@ print(gg)
 ggsave(plot = print(gg), filename = "only_mut_PFS.png", path = outpath, dpi = 300, height = 6, width = 8)
 
 
-gg <- ggsurvplot(survfit(secondPFS2 ~ df2$TP53_mutation_no_del, data = df2), pval = T, risk.table = T, xlab = "2nd PFS",
+gg <- ggsurvplot(survfit(twoPFS2 ~ df2$TP53_mutation_no_del, data = df2), pval = T, risk.table = T, xlab = "PFS2",
                  surv.median.line = "hv", break.time.by = 12, legend= c(0.85,0.9), legend.title="", 
                  legend.labs=c("TP53 wt", "TP53 1 hit (mut+ del-)"), tables.y.text = F, 
                  risk.table.y.text.col = TRUE, font.legend=c("bold"))
 print(gg)
 
-ggsave(plot = print(gg), filename = "only_mut_2ndPFS.png", path = outpath, dpi = 300, height = 6, width = 8)
+ggsave(plot = print(gg), filename = "only_mut_PFS2.png", path = outpath, dpi = 300, height = 6, width = 8)
 
 
 
@@ -174,7 +174,7 @@ df3 <- df %>% filter(MUT_p53_D_SUB_CLON == 0)
 
 OS3 <- Surv( time = df3$OS_MESI, event = df3$OS_event_death)
 PFS3 <- Surv( time = df3$PFS_I_months, event = df3$PFS_I_event)
-secondPFS3 <- Surv( time=df3$secondPFS_months, event = df3$secondPFS_event)
+twoPFS3 <- Surv( time=df3$twoPFS_months, event = df3$twoPFS_event)
 
 
 gg <- ggsurvplot(survfit(OS3 ~ df3$TP53_del_no_mut, data = df3), pval = T, risk.table = T, xlab = "OS",
@@ -195,13 +195,13 @@ print(gg)
 ggsave(plot = print(gg), filename = "only_del_PFS.png", path = outpath, dpi = 300, height = 6, width = 8)
 
 
-gg <- ggsurvplot(survfit(secondPFS3 ~ df3$TP53_del_no_mut, data = df3), pval = T, risk.table = T, xlab = "2nd PFS",
+gg <- ggsurvplot(survfit(twoPFS3 ~ df3$TP53_del_no_mut, data = df3), pval = T, risk.table = T, xlab = "PFS2",
                  surv.median.line = "hv", break.time.by = 12, legend= c(0.85,0.9), legend.title="", 
                  legend.labs=c("TP53 wt", "TP53 1 hit (mut- del+)"), tables.y.text = F, 
                  risk.table.y.text.col = TRUE, font.legend=c("bold"))
 print(gg)
 
-ggsave(plot = print(gg), filename = "only_del_2ndPFS.png", path = outpath, dpi = 300, height = 6, width = 8)
+ggsave(plot = print(gg), filename = "only_del_PFS2.png", path = outpath, dpi = 300, height = 6, width = 8)
 
 
 
@@ -217,7 +217,7 @@ gmodels::CrossTable(df4$call10_del_TP53, df4$MUT_p53_D_SUB_CLON, prop.r = F, pro
 
 OS4 <- Surv( time = df4$OS_MESI, event = df4$OS_event_death)
 PFS4 <- Surv( time = df4$PFS_I_months, event = df4$PFS_I_event)
-secondPFS4 <- Surv( time = df4$secondPFS_months, event = df4$secondPFS_event)
+twoPFS4 <- Surv( time = df4$twoPFS_months, event = df4$twoPFS_event)
 
 gg <- ggsurvplot(survfit(OS4 ~ df4$del_only_AND_mut_only, data = df4), legend.labs=c("TP53 wt", "TP53 1 hit (mut+ or del+)"),
            pval = T, risk.table = T, xlab = "OS", surv.median.line = "hv", break.time.by = 12, legend= c(0.85,0.9), 
@@ -237,13 +237,13 @@ print(gg)
 ggsave(plot = print(gg), filename = "1HIT_PFS.png", path = outpath, dpi = 300, height = 6, width = 8)
 
 
-gg <- ggsurvplot(survfit(secondPFS4 ~ df4$del_only_AND_mut_only, data = df4), legend.labs=c("TP53 wt", "TP53 1 hit (mut+ or del+)"),
-                 pval = T, risk.table = T, xlab = "2nd PFS", surv.median.line = "hv", break.time.by = 12, legend= c(0.85,0.9), 
+gg <- ggsurvplot(survfit(twoPFS4 ~ df4$del_only_AND_mut_only, data = df4), legend.labs=c("TP53 wt", "TP53 1 hit (mut+ or del+)"),
+                 pval = T, risk.table = T, xlab = "PFS2", surv.median.line = "hv", break.time.by = 12, legend= c(0.85,0.9), 
                  legend.title="", tables.y.text = F, risk.table.y.text.col = TRUE, font.legend=c("bold"))
 
 print(gg)
 
-ggsave(plot = print(gg), filename = "1HIT_2ndPFS.png", path = outpath, dpi = 300, height = 6, width = 8)
+ggsave(plot = print(gg), filename = "1HIT_PFS2.png", path = outpath, dpi = 300, height = 6, width = 8)
 
 
 
@@ -257,7 +257,7 @@ df5 <- df %>% filter(!(MUT_p53_D_SUB_CLON==1 & call10_del_TP53==0 | MUT_p53_D_SU
 
 OS5 <- Surv( time = df5$OS_MESI, event = df5$OS_event_death)
 PFS5 <- Surv( time = df5$PFS_I_months, event = df5$PFS_I_event)
-secondPFS5 <- Surv( time = df5$secondPFS_months, event = df5$secondPFS_event)
+twoPFS5 <- Surv( time = df5$twoPFS_months, event = df5$twoPFS_event)
 
 
 df5$Double_Hit <- ifelse(df5$MUT_p53_D_SUB_CLON==1 & df5$call10_del_TP53==1, 1, 0)
@@ -281,13 +281,13 @@ ggsave(plot = print(gg), filename = "Double-HIT_PFS.png", path = outpath, dpi = 
 
 
 
-gg <-ggsurvplot(survfit(secondPFS5 ~ df5$Double_Hit, data = df5), legend.labs=c("TP53 wt", "TP53 double-hit"),
-                pval = T, risk.table = T, xlab = "2nd PFS", surv.median.line = "hv", break.time.by = 12, legend= c(0.85,0.9), 
+gg <-ggsurvplot(survfit(twoPFS5 ~ df5$Double_Hit, data = df5), legend.labs=c("TP53 wt", "TP53 double-hit"),
+                pval = T, risk.table = T, xlab = "PFS2", surv.median.line = "hv", break.time.by = 12, legend= c(0.85,0.9), 
                 legend.title="", tables.y.text = F, risk.table.y.text.col = TRUE, font.legend=c("bold"))
 
 print(gg)
 
-ggsave(plot = print(gg), filename = "Double-HIT_2ndPFS.png", path = outpath, dpi = 300, height = 6, width = 8)
+ggsave(plot = print(gg), filename = "Double-HIT_PFS2.png", path = outpath, dpi = 300, height = 6, width = 8)
 
 
 
@@ -316,13 +316,13 @@ ggsave(plot = print(gg), filename = "three_curves_PFS.png", path = outpath, dpi 
 
 
 
-gg <- ggsurvplot(survfit(secondPFS ~ df$group, data = df), pval = T, risk.table = T, xlab = "2nd PFS",
+gg <- ggsurvplot(survfit(twoPFS ~ df$group, data = df), pval = T, risk.table = T, xlab = "PFS2",
                  surv.median.line = "hv", break.time.by = 12, legend= c(0.9,0.9), legend.title="", 
                  legend.labs=c("TP53 double-hit", "TP53 1 Hit", "TP53 wt"), tables.y.text = F, 
                  risk.table.y.text.col = TRUE, font.legend=c("bold"))
 print(gg)
 
-ggsave(plot = print(gg), filename = "three_curves_2ndPFS.png", path = outpath, dpi = 300, height = 6, width = 8)
+ggsave(plot = print(gg), filename = "three_curves_PFS2.png", path = outpath, dpi = 300, height = 6, width = 8)
 
 
 #=============== protocollo ===================
@@ -373,10 +373,10 @@ coxph(PFS5 ~ df5$Double_Hit + strata(ISS) + strata(PROTOCOL), data = df5) %>% su
 
 
 
-######################### PFS II analysis ############################
+######################### second PFS analysis ############################
 
 
-#_____________ compute PFS 2 _____________
+#_____________ compute second PFS _____________
 
 
 # query per tutti i pazienti del DB che hanno i dati molecolari di relapse (65)
@@ -388,9 +388,9 @@ prog_true <- query_relapse %>% filter(Prog_I==1)
 # completamento della colonna prog_II: inserimento di 0 nei valori mancanti (pazienti che non sono progrediti ma sono morti o ancora vivi, mancava il dato)
 prog_true$Prog_II[is.na(prog_true$Prog_II)] <- 0
 
-# calcolo nuova variabile = PFS_2_event
-prog_true$PFS_2_event <- ifelse( prog_true$Prog_II == 1 | prog_true$OS_event_death == 1, 1, 0)
-prog_true$PFS_2_event %>% table
+# calcolo nuova variabile = secondPFS_event
+prog_true$secondPFS_event <- ifelse( prog_true$Prog_II == 1 | prog_true$OS_event_death == 1, 1, 0)
+prog_true$secondPFS_event %>% table
 
 # convert the dates in correct Date format
 prog_true$data_II_relapse <- as.Date(prog_true$data_II_relapse, origin="1970-01-01")
@@ -398,22 +398,22 @@ prog_true$Date_of_death <- as.Date(prog_true$Date_of_death, origin="1970-01-01")
 prog_true$LAST_FULLOW_UP <- as.Date(prog_true$LAST_FULLOW_UP, origin="1970-01-01")
 prog_true$PFS_I_date <- as.Date(prog_true$PFS_I_date, origin="1970-01-01")
 
-# calcolo nuova variabile = PFS_2_date
-prog_true$PFS_2_date <- dplyr::if_else(prog_true$Prog_II == 1, 
+# calcolo nuova variabile = secondPFS_date
+prog_true$secondPFS_date <- dplyr::if_else(prog_true$Prog_II == 1, 
                                        as.Date(prog_true$data_II_relapse, origin="1970-01-01"), 
                                        dplyr::if_else(prog_true$OS_event_death == 1, 
                                                       as.Date(prog_true$Date_of_death, origin="1970-01-01"), 
                                                       as.Date(prog_true$LAST_FULLOW_UP,origin="1970-01-01")
                                        ))
 
-prog_true %>% select(Prog_II, data_II_relapse, OS_event_death, Date_of_death, LAST_FULLOW_UP, PFS_2_event, PFS_2_date) %>% View
+prog_true %>% select(Prog_II, data_II_relapse, OS_event_death, Date_of_death, LAST_FULLOW_UP, secondPFS_event, secondPFS_date) %>% View
 
-# calulate the PFS_2_time
-prog_true$PFS_2_time <- prog_true$PFS_2_date - prog_true$PFS_I_date
-prog_true %>% select( PFS_I_date, PFS_2_date, PFS_2_time) %>% View
+# calulate the secondPFS_time
+prog_true$secondPFS_time <- prog_true$secondPFS_date - prog_true$PFS_I_date
+prog_true %>% select( PFS_I_date, secondPFS_date, secondPFS_time) %>% View
 
-# calulate the PFS_2_months
-prog_true$PFS_2_months <- round(prog_true$PFS_2_time / 30.5, 0) 
+# calulate the secondPFS_months
+prog_true$secondPFS_months <- round(prog_true$secondPFS_time / 30.5, 0) 
 
 #______________ set flag and filter________
 prog_true$flag <- ifelse(prog_true$PROTOCOLLO != "BO2005" & prog_true$PROTOCOLLO != "EMN02" & 
@@ -421,9 +421,7 @@ prog_true$flag <- ifelse(prog_true$PROTOCOLLO != "BO2005" & prog_true$PROTOCOLLO
                            prog_true$TP53_adj_D >= 1.9 & prog_true$MUT_p53_D_SUB_CLON ==0 , 
                          1, 0)
 
-
 DF2 <- prog_true %>% filter(flag==0)
-
 
 # ISS distribution Check
 DF2$ISS %>% table 
@@ -437,20 +435,32 @@ DF2$call10_del_TP53_D %>% table
 DF2$call10_del_TP53_R %>% table
 
 
+gmodels::CrossTable(DF2$call10_del_TP53_R, DF2$MUT_P53_R_SUB_CLON, prop.r = F, prop.c = F, prop.t = F, prop.chisq = F)
 
-#=========== del 10% survival PFS2 ==========
 
-PFS2 <- Surv( time = DF2$PFS_2_months, event = DF2$PFS_2_event)
+
+#=========== del 10% survival second PFS2 ==========
+
+secondPFS <- Surv( time = DF2$secondPFS_months, event = DF2$secondPFS_event)
 
 # DEL at RELAPSE
-ggsurvplot(survfit(PFS2 ~ DF2$call10_del_TP53_R, data = DF2), pval = T, risk.table = T, xlab = "PFS")
-
-coxph(PFS2 ~ DF2$call10_del_TP53_R, data = DF2) %>% summary
-coxph(PFS2 ~ DF2$call10_del_TP53_R + strata(DF2$ISS) , data = DF2) %>% summary
+ggsurvplot(survfit(secondPFS ~ DF2$call10_del_TP53_R, data = DF2), pval = T, risk.table = T, xlab = "PFS")
 
 # DEL at DIAGNOSIS
-ggsurvplot(survfit(PFS2 ~ DF2$call10_del_TP53_D, data = DF2), pval = T, risk.table = T, xlab = "PFS")
+ggsurvplot(survfit(secondPFS ~ DF2$call10_del_TP53_D, data = DF2), pval = T, risk.table = T, xlab = "PFS")
 
-coxph(PFS2 ~ DF2$call10_del_TP53_D, data = DF2) %>% summary
-coxph(PFS2 ~ DF2$call10_del_TP53_D + strata(DF2$ISS) , data = DF2) %>% summary
+
+
+gg <- ggsurvplot(survfit(secondPFS ~ DF2$call10_del_TP53_R, data = DF2) , pval = T, risk.table = T, xlab = "second PFS",
+                 surv.median.line = "hv", break.time.by = 12, legend= c(0.9,0.9), legend.title="", 
+                 legend.labs=c("s", "d"), tables.y.text = F, 
+                 risk.table.y.text.col = TRUE, font.legend=c("bold"))
+print(gg)
+
+ggsave(plot = print(gg), filename = "three_curves_secondPFS.png", path = outpath, dpi = 300, height = 6, width = 8)
+
+
+
+
+
 
