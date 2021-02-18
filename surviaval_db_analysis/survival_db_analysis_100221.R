@@ -5,7 +5,7 @@ library(survival)
 library(survminer)
 
 # full file path to Access DB
-file_path <- "C:/Users/andre/Alma Mater Studiorum Università di Bologna/PROJECT SophiaPanel - TP53 - Documenti/TP53_DB_v1.accdb"
+file_path <- "C:/Users/mm_gr/Alma Mater Studiorum Università di Bologna/PROJECT SophiaPanel - TP53 - Documenti/TP53_DB_v1.accdb"
 
 # pass MS Access file path to connection string
 
@@ -16,12 +16,15 @@ TABS <- sqlTables(db)$TABLE_NAME
 df <- sqlFetch(db, "Query_Survival_Analysis_CompositeCalls")
 
 
+
 ################# SET FLAG #####################
 df$flag <- ifelse(df$PROTOCOLLO != "BO2005" & df$PROTOCOLLO != "EMN02" & 
                     df$TTP_I_months <= 24 & df$Prog_I==1 &
                     df$TP53_adj >= 1.9 & df$MUT_p53_D_SUB_CLON ==0 , 
                   1, 0)
 table(df$flag)
+
+table(df$patient_flag, df$flag)
 
 df <- df %>% filter(flag != 1)
 
@@ -34,6 +37,8 @@ df$call40_del_TP53 <- ifelse(df$TP53_adj <= 1.6, 1,0)
 df$call30_del_TP53 <- ifelse(df$TP53_adj <= 1.7, 1,0)
 df$call20_del_TP53 <- ifelse(df$TP53_adj <= 1.8, 1,0)
 df$call10_del_TP53 <- ifelse(df$TP53_adj <= 1.9, 1,0)
+
+
 
 #______ revision protocol ________
 df$PROTOCOL <- df$PROTOCOLLO %>% recode("FORTE"="AMB", "FP - EMN02"="AMB", "FP - BO2005"="AMB" )
@@ -105,11 +110,22 @@ PFS <- Surv( time = df$PFS_I_months, event = df$PFS_I_event)
 twoPFS <- Surv( time=df$twoPFS_months, event = df$twoPFS_event)
 
 
+#____ create analysis variables______
+df$TP53_mutation_no_del <- ifelse(df$call10_del_TP53==0 & df$MUT_p53_D_SUB_CLON==1, 1, 0)
+df$TP53_del_no_mut <- ifelse(df$call10_del_TP53==1 & df$MUT_p53_D_SUB_CLON==0, 1, 0)
+df$del_only_AND_mut_only <- ifelse(df$call10_del_TP53==1 & df$MUT_p53_D_SUB_CLON==0 | df$call10_del_TP53==0 & df$MUT_p53_D_SUB_CLON==1, 1, 0 )
+df$Double_Hit <- ifelse(df$MUT_p53_D_SUB_CLON==1 & df$call10_del_TP53==1, 1, 0)
+
+df$group <- ifelse(df$call10_del_TP53==1 & df$MUT_p53_D_SUB_CLON==1, "Double_Hit", 
+                   ifelse(df$call10_del_TP53==0 & df$MUT_p53_D_SUB_CLON==0, "WT", "One_Hit")) %>% as.factor
+
+
+
 ##################################################################################
 ######################### NEW SURV CURVES for PAPER ##############################
 ##################################################################################
 
-outpath <- "C:/Users/andre/Alma Mater Studiorum Università di Bologna/PROJECT SophiaPanel - TP53 - Documenti/Paper_figures/after_revision_1_110221/"
+outpath <- "C:/Users/mm_gr/Alma Mater Studiorum Università di Bologna/PROJECT SophiaPanel - TP53 - Documenti/Paper_figures/after_revision_1_110221/"
 
 
 gmodels::CrossTable(df$call10_del_TP53, df$MUT_p53_D_SUB_CLON, prop.r = F, prop.c = F, prop.t = F, prop.chisq = F)
@@ -118,7 +134,6 @@ gmodels::CrossTable(df$call10_del_TP53, df$MUT_p53_D_SUB_CLON, prop.r = F, prop.
 #_____________ 1a) 97 pts (no del - no mut) vs 5 (only mut) _____________
 
 
-df$TP53_mutation_no_del <- ifelse(df$call10_del_TP53==0 & df$MUT_p53_D_SUB_CLON==1, 1, 0)
 
 df2 <- df %>% filter(call10_del_TP53 == 0) # only no del - 97 (no del - no mut) vs 5 (only mut)
 
@@ -169,7 +184,6 @@ fwrite(c_twoPFS2 ,paste0(outpath,"report_univariate_170221.txt"), append = T, se
 
 #_____________ 1b) 97 pts (no del - no mut) vs 39 (only del) _____________
 
-df$TP53_del_no_mut <- ifelse(df$call10_del_TP53==1 & df$MUT_p53_D_SUB_CLON==0, 1, 0)
 
 df3 <- df %>% filter(MUT_p53_D_SUB_CLON == 0) 
 
@@ -221,7 +235,6 @@ fwrite(c_twoPFS3 ,paste0(outpath,"report_univariate_170221.txt"), append = T, se
 
 #_______________ 2) Single HIT: only mut + only del (39 pts) vs no del no mut (97 pts) __________________
 
-df$del_only_AND_mut_only <- ifelse(df$call10_del_TP53==1 & df$MUT_p53_D_SUB_CLON==0 | df$call10_del_TP53==0 & df$MUT_p53_D_SUB_CLON==1, 1, 0 )
 
 df4 <- df %>% filter(!(MUT_p53_D_SUB_CLON==1 & call10_del_TP53==1)) # only 1 hit - 97 (no del and no mut) vs 39 (only del or only mut)
 gmodels::CrossTable(df4$call10_del_TP53, df4$MUT_p53_D_SUB_CLON, prop.r = F, prop.c = F, prop.t = F, prop.chisq = F)
@@ -272,7 +285,6 @@ fwrite(c_twoPFS4 ,paste0(outpath,"report_univariate_170221.txt"), append = T, se
 
 #_________________ 3) double hit (7 pts) vs no del no mut (97 pts) _________________________
 
-df$Double_Hit <- ifelse(df$MUT_p53_D_SUB_CLON==1 & df$call10_del_TP53==1, 1, 0)
 
 
 df5 <- df %>% filter(!(MUT_p53_D_SUB_CLON==1 & call10_del_TP53==0 | MUT_p53_D_SUB_CLON==0 & call10_del_TP53==1)) # only no del - 97 (no del - no mut) vs 5 (only mut)
@@ -327,10 +339,6 @@ fwrite(c_twoPFS5 ,paste0(outpath,"report_univariate_170221.txt"), append = T, se
 
 #____________________ 4) three curves _______________________
 
-df$group <- ifelse(df$call10_del_TP53==1 & df$MUT_p53_D_SUB_CLON==1, "Double_Hit", 
-                   ifelse(df$call10_del_TP53==0 & df$MUT_p53_D_SUB_CLON==0, "WT", "One_Hit")) %>% as.factor
-
-
 gg <- ggsurvplot(survfit(OS ~ df$group, data = df) , pval = T, risk.table = T, xlab = "OS",
            surv.median.line = "hv", break.time.by = 12, legend= c(0.9,0.9), legend.title="", 
            legend.labs=c("TP53 double-hit", "TP53 1 Hit", "TP53 wt"), tables.y.text = F, 
@@ -379,8 +387,7 @@ print(gg)
 ggsave(plot = print(gg), filename = "PROTOCOL_PFS.png", path = outpath, dpi = 300, height = 6, width = 8)
 
 
-df$group = relevel(df$group, ref = "WT")
-
+# df$group = relevel(df$group, ref = "WT")
 # coxph(OS ~ df$group + strata(PROTOCOL), data = df)  %>% summary
 # coxph(PFS ~ df$group + strata(ISS), data = df) %>% summary
 
@@ -570,49 +577,132 @@ ggsave(plot = print(gg), filename = "three_curves_secondPFS.png", path = outpath
 
 
 ################################### multivariate ############################################
+
+# EXCLUDE MISSING ISS PTS
+
+df_M <- df %>% filter(!is.na(ISS))
+
+OS_M <- Surv( time = df_M$OS_MESI, event = df_M$OS_event_death)
+PFS_M <- Surv( time = df_M$PFS_I_months, event = df_M$PFS_I_event)
+# 
+# Covariate testate:
+# "D_traslocazione","TRASLOCATI","Fish_T_4_14", "Fish_T_6_14_", "Fish_T_11_14",
+# "Fish_T_14_16", "Fish_T_14_20",  "Del_13q_composite", "Del_17p_composite", "Del_1p_composite", 
+# "Amp_1q_composite", "Fish_iper", "plt_m_150", "Age", "Age_Cat"
+
+
+#____________PFS_______________
+
+with(df_M, coxph(PFS_M ~ call10_del_TP53 + strata(ISS) )) %>% summary
+with(df_M, coxph(PFS_M ~ MUT_p53_D_SUB_CLON + strata(ISS) )) %>% summary
+with(df_M, coxph(PFS_M ~ del_only_AND_mut_only + strata(ISS) )) %>% summary
+with(df_M, coxph(PFS_M ~ Double_Hit + strata(ISS) )) %>% summary
+
+
+with(df_M, coxph(PFS_M ~ D_traslocazione + strata(ISS) )) %>% summary
+with(df_M, coxph(PFS_M ~ TRASLOCATI + strata(ISS) )) %>% summary
+with(df_M, coxph(PFS_M ~ Fish_T_4_14 + strata(ISS) )) %>% summary
+with(df_M, coxph(PFS_M ~ Fish_T_6_14_ + strata(ISS) )) %>% summary
+with(df_M, coxph(PFS_M ~ Fish_T_11_14 + strata(ISS) )) %>% summary # **
+with(df_M, coxph(PFS_M ~ Fish_T_14_16 + strata(ISS) )) %>% summary
+with(df_M, coxph(PFS_M ~ Fish_T_14_20 + strata(ISS) )) %>% summary # **
+with(df_M, coxph(PFS_M ~ Del_13q_composite + strata(ISS) )) %>% summary # .
+with(df_M, coxph(PFS_M ~ Del_17p_composite + strata(ISS) )) %>% summary # **
+with(df_M, coxph(PFS_M ~ Del_1p_composite + strata(ISS) )) %>% summary
+with(df_M, coxph(PFS_M ~ Amp_1q_composite + strata(ISS) )) %>% summary
+with(df_M, coxph(PFS_M ~ Fish_iper + strata(ISS) )) %>% summary
+with(df_M, coxph(PFS_M ~ plt_m_150 + strata(ISS) )) %>% summary
+with(df_M, coxph(PFS_M ~ Age + strata(ISS) )) %>% summary
+
+
+
+with(df_M, coxph(PFS_M ~ call10_del_TP53 + MUT_p53_D_SUB_CLON  + strata(ISS) )) %>% summary
+with(df_M, coxph(PFS_M ~ Del_17p_composite + MUT_p53_D_SUB_CLON  + strata(ISS) )) %>% summary
+with(df_M, coxph(PFS_M ~ Del_17p_composite + Double_Hit  + strata(ISS) )) %>% summary
+
+# MY MV PFS
+with(df_M, coxph(PFS_M ~ Fish_T_11_14 + Fish_T_14_20 + Double_Hit + Del_13q_composite + strata(ISS) )) %>% summary
+with(df_M, coxph(PFS_M ~ Fish_T_11_14 + Fish_T_14_20 + Double_Hit + strata(ISS) )) %>% summary
+
+
+#_______________ OS _______________
+del_only_AND_mut_only
+with(df_M, coxph(OS_M ~ call10_del_TP53 + strata(ISS) )) %>% summary
+with(df_M, coxph(OS_M ~ MUT_p53_D_SUB_CLON + strata(ISS) )) %>% summary
+with(df_M, coxph(OS_M ~ del_only_AND_mut_only + strata(ISS) )) %>% summary
+with(df_M, coxph(OS_M ~ Double_Hit + strata(ISS) )) %>% summary
+
+with(df_M, coxph(OS_M ~ D_traslocazione + strata(ISS) )) %>% summary
+with(df_M, coxph(OS_M ~ TRASLOCATI + strata(ISS) )) %>% summary
+with(df_M, coxph(OS_M ~ Fish_T_4_14 + strata(ISS) )) %>% summary
+with(df_M, coxph(OS_M ~ Fish_T_6_14_ + strata(ISS) )) %>% summary
+with(df_M, coxph(OS_M ~ Fish_T_11_14 + strata(ISS) )) %>% summary # *
+with(df_M, coxph(OS_M ~ Fish_T_14_16 + strata(ISS) )) %>% summary
+with(df_M, coxph(OS_M ~ Fish_T_14_20 + strata(ISS) )) %>% summary # **
+with(df_M, coxph(OS_M ~ Del_13q_composite + strata(ISS) )) %>% summary # ***
+with(df_M, coxph(OS_M ~ Del_17p_composite + strata(ISS) )) %>% summary # .
+with(df_M, coxph(OS_M ~ Del_1p_composite + strata(ISS) )) %>% summary # .
+with(df_M, coxph(OS_M ~ Amp_1q_composite + strata(ISS) )) %>% summary
+with(df_M, coxph(OS_M ~ Fish_iper + strata(ISS) )) %>% summary # .
+with(df_M, coxph(OS_M ~ plt_m_150 + strata(ISS) )) %>% summary # *
+with(df_M, coxph(OS_M ~ Age + strata(ISS) )) %>% summary
+
+
+with(df_M, coxph(OS_M ~ call10_del_TP53 + Del_13q_composite  + strata(ISS) )) %>% summary
+with(df_M, coxph(OS_M ~ Del_17p_composite + plt_m_150 + MUT_p53_D_SUB_CLON  + strata(ISS) )) %>% summary
+with(df_M, coxph(OS_M ~ Del_17p_composite + plt_m_150 + Del_13q_composite + Double_Hit  + strata(ISS) )) %>% summary
+
+
+# MY MV OS
+
+with(df_M, coxph(OS_M ~ Fish_T_11_14 + Fish_T_14_20 + Del_13q_composite + Del_1p_composite + Fish_iper + plt_m_150+ Double_Hit  + strata(ISS) )) %>% summary
+with(df_M, coxph(OS_M ~ Fish_T_14_20 + Del_13q_composite + Double_Hit  + strata(ISS) )) %>% summary
+
+
+
+########################## REPORT MV ###########################
 library(broom)
 
 # del 10% TP53 and mut
-MV_PFS_1 <- with(df, coxph(PFS ~ MUT_p53_D_SUB_CLON + call10_del_TP53  + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="PFS", .)
+MV_PFS_1 <- with(df_M, coxph(PFS_M ~ MUT_p53_D_SUB_CLON + call10_del_TP53  + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="PFS", .)
 write_tsv(MV_PFS_1, paste0(outpath,"report_multivariate_170221.txt"), append = T, col_names = T)
 
-MV_OS_1 <- with(df, coxph(OS ~ MUT_p53_D_SUB_CLON + call10_del_TP53  + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="OS", .)
+MV_OS_1 <- with(df_M, coxph(OS_M ~ MUT_p53_D_SUB_CLON + call10_del_TP53  + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="OS", .)
 write_tsv(MV_PFS_1, paste0(outpath,"report_multivariate_170221.txt"), append = T, col_names = T)
 
 
 # del 17 and MUT
-MV_PFS_2 <- with(df, coxph(PFS ~ MUT_p53_D_SUB_CLON + Del_17p_composite + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="PFS", .)
+MV_PFS_2 <- with(df_M, coxph(PFS_M ~ MUT_p53_D_SUB_CLON + Del_17p_composite + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="PFS", .)
 write_tsv(MV_PFS_2, paste0(outpath,"report_multivariate_170221.txt"), append = T, col_names = T)
 
-MV_OS_2 <- with(df, coxph(OS ~ MUT_p53_D_SUB_CLON + Del_17p_composite  + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="OS", .)
+MV_OS_2 <- with(df_M, coxph(OS_M ~ MUT_p53_D_SUB_CLON + Del_17p_composite  + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="OS", .)
 write_tsv(MV_OS_2, paste0(outpath,"report_multivariate_170221.txt"), append = T, col_names = T)
 
 
 
 # del 17 and DoubleHit
-MV_PFS_3 <- with(df, coxph(PFS ~ Double_Hit  + Del_17p_composite + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="PFS", .)
+MV_PFS_3 <- with(df_M, coxph(PFS_M ~ Double_Hit  + Del_17p_composite + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="PFS", .)
 write_tsv(MV_PFS_3, paste0(outpath,"report_multivariate_170221.txt"), append = T, col_names = T)
 
-MV_OS_3 <- with(df, coxph(OS ~ Double_Hit  + Del_17p_composite  + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="OS", .)
+MV_OS_3 <- with(df_M, coxph(OS_M ~ Double_Hit  + Del_17p_composite  + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="OS", .)
 write_tsv(MV_OS_3, paste0(outpath,"report_multivariate_170221.txt"), append = T, col_names = T)
 
 
 
 # del 17 and DoubleHit
-MV_PFS_3 <- with(df, coxph(PFS ~ Double_Hit  + Del_17p_composite + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="PFS", .)
+MV_PFS_3 <- with(df_M, coxph(PFS_M ~ Double_Hit  + Del_17p_composite + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="PFS", .)
 write_tsv(MV_PFS_3, paste0(outpath,"report_multivariate_170221.txt"), append = T, col_names = T)
 
-MV_OS_3 <- with(df, coxph(OS ~ Double_Hit  + Del_17p_composite  + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="OS", .)
+MV_OS_3 <- with(df_M, coxph(OS_M ~ Double_Hit  + Del_17p_composite  + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="OS", .)
 write_tsv(MV_OS_3, paste0(outpath,"report_multivariate_170221.txt"), append = T, col_names = T)
 
 
 
 
 # del 17 - DoubleHit - del 13 - plt m 150
-MV_PFS_3 <- with(df, coxph(PFS ~ Double_Hit  + Del_17p_composite + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="PFS", .)
+MV_PFS_3 <- with(df, coxph(PFS_M ~ Double_Hit  + Del_17p_composite + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="PFS", .)
 write_tsv(MV_PFS_3, paste0(outpath,"report_multivariate_170221.txt"), append = T, col_names = T)
 
-MV_OS_3 <- with(df, coxph(OS ~ Double_Hit  +  Del_13q_composite + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="OS", .)
+MV_OS_3 <- with(df, coxph(OS_M ~ Double_Hit  +  Del_13q_composite + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="OS", .)
 write_tsv(MV_OS_3, paste0(outpath,"report_multivariate_170221.txt"), append = T, col_names = T)
 
-df$Fish_T_4_14
