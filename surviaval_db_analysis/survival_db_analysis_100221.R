@@ -663,46 +663,133 @@ with(df_M, coxph(OS_M ~ Fish_T_14_20 + Del_13q_composite + Double_Hit  + strata(
 ########################## REPORT MV ###########################
 library(broom)
 
-# del 10% TP53 and mut
-MV_PFS_1 <- with(df_M, coxph(PFS_M ~ MUT_p53_D_SUB_CLON + call10_del_TP53  + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="PFS", .)
-write_tsv(MV_PFS_1, paste0(outpath,"report_multivariate_170221.txt"), append = T, col_names = T)
+#____________PFS_______________
 
-MV_OS_1 <- with(df_M, coxph(OS_M ~ MUT_p53_D_SUB_CLON + call10_del_TP53  + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="OS", .)
-write_tsv(MV_PFS_1, paste0(outpath,"report_multivariate_170221.txt"), append = T, col_names = T)
+write_tsv(data.frame("univariate TP53"),paste0(outpath,"report_multivariate_170221.txt"), append = T)
+with(df_M, coxph(PFS_M ~ call10_del_TP53 + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="PFS", .)%>% write_tsv(paste0(outpath,"report_multivariate_170221.txt"), append = T, col_names = T)
+write_tsv(data.frame("\n"),paste0(outpath,"report_multivariate_170221.txt"), append = T)
+with(df_M, coxph(PFS_M ~ MUT_p53_D_SUB_CLON + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="PFS", .)%>% write_tsv(paste0(outpath,"report_multivariate_170221.txt"), append = T, col_names = T)
+write_tsv(data.frame("\n"),paste0(outpath,"report_multivariate_170221.txt"), append = T)
+with(df_M, coxph(PFS_M ~ del_only_AND_mut_only + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="PFS", .)%>% write_tsv(paste0(outpath,"report_multivariate_170221.txt"), append = T, col_names = T)
+write_tsv(data.frame("\n"),paste0(outpath,"report_multivariate_170221.txt"), append = T)
+with(df_M, coxph(PFS_M ~ Double_Hit + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="PFS", .)%>% write_tsv(paste0(outpath,"report_multivariate_170221.txt"), append = T, col_names = T)
+
+write_tsv(data.frame("\n"),paste0(outpath,"report_multivariate_170221.txt"), append = T)
+write_tsv(data.frame("\n"),paste0(outpath,"report_multivariate_170221.txt"), append = T)
+write_tsv(data.frame("univariate other vars"),paste0(outpath,"report_multivariate_170221.txt"), append = T)
+
+with(df_M, coxph(PFS_M ~ D_traslocazione + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="PFS", .)%>% write_tsv(paste0(outpath,"report_multivariate_170221.txt"), append = T, col_names = T)
+write_tsv(data.frame("\n"),paste0(outpath,"report_multivariate_170221.txt"), append = T)
+with(df_M, coxph(PFS_M ~ TRASLOCATI + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="PFS", .)%>% write_tsv(paste0(outpath,"report_multivariate_170221.txt"), append = T, col_names = T)
+write_tsv(data.frame("\n"),paste0(outpath,"report_multivariate_170221.txt"), append = T)
+with(df_M, coxph(PFS_M ~ Fish_T_4_14 + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="PFS", .)%>% write_tsv(paste0(outpath,"report_multivariate_170221.txt"), append = T, col_names = T)
+write_tsv(data.frame("\n"),paste0(outpath,"report_multivariate_170221.txt"), append = T)
+with(df_M, coxph(PFS_M ~ Fish_T_6_14_ + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="PFS", .)%>% write_tsv(paste0(outpath,"report_multivariate_170221.txt"), append = T, col_names = T)
+write_tsv(data.frame("\n"),paste0(outpath,"report_multivariate_170221.txt"), append = T)
+with(df_M, coxph(PFS_M ~ Fish_T_11_14 + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="PFS", .) %>% write_tsv(paste0(outpath,"report_multivariate_170221.txt"), append = T, col_names = T)
+write_tsv(data.frame("\n"),paste0(outpath,"report_multivariate_170221.txt"), append = T)
+with(df_M, coxph(PFS_M ~ Fish_T_14_16 + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="PFS", .)%>% write_tsv(paste0(outpath,"report_multivariate_170221.txt"), append = T, col_names = T)
+write_tsv(data.frame("\n"),paste0(outpath,"report_multivariate_170221.txt"), append = T)
+with(df_M, coxph(PFS_M ~ Fish_T_14_20 + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="PFS", .) %>% write_tsv(paste0(outpath,"report_multivariate_170221.txt"), append = T, col_names = T)
+write_tsv(data.frame("\n"),paste0(outpath,"report_multivariate_170221.txt"), append = T)
+with(df_M, coxph(PFS_M ~ Del_13q_composite + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="PFS", .)%>% write_tsv(paste0(outpath,"report_multivariate_170221.txt"), append = T, col_names = T)
+write_tsv(data.frame("\n"),paste0(outpath,"report_multivariate_170221.txt"), append = T)
+with(df_M, coxph(PFS_M ~ Del_17p_composite + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="PFS", .) %>% write_tsv(paste0(outpath,"report_multivariate_170221.txt"), append = T, col_names = T)
+write_tsv(data.frame("\n"),paste0(outpath,"report_multivariate_170221.txt"), append = T)
+with(df_M, coxph(PFS_M ~ Del_1p_composite + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="PFS", .)%>% write_tsv(paste0(outpath,"report_multivariate_170221.txt"), append = T, col_names = T)
+write_tsv(data.frame("\n"),paste0(outpath,"report_multivariate_170221.txt"), append = T)
+with(df_M, coxph(PFS_M ~ Amp_1q_composite + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="PFS", .)%>% write_tsv(paste0(outpath,"report_multivariate_170221.txt"), append = T, col_names = T)
+write_tsv(data.frame("\n"),paste0(outpath,"report_multivariate_170221.txt"), append = T)
+with(df_M, coxph(PFS_M ~ Fish_iper + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="PFS", .)%>% write_tsv(paste0(outpath,"report_multivariate_170221.txt"), append = T, col_names = T)
+write_tsv(data.frame("\n"),paste0(outpath,"report_multivariate_170221.txt"), append = T)
+with(df_M, coxph(PFS_M ~ plt_m_150 + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="PFS", .)%>% write_tsv(paste0(outpath,"report_multivariate_170221.txt"), append = T, col_names = T)
+write_tsv(data.frame("\n"),paste0(outpath,"report_multivariate_170221.txt"), append = T)
+with(df_M, coxph(PFS_M ~ Age + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="PFS", .)%>% write_tsv(paste0(outpath,"report_multivariate_170221.txt"), append = T, col_names = T)
+
+write_tsv(data.frame("\n"),paste0(outpath,"report_multivariate_170221.txt"), append = T)
+write_tsv(data.frame("\n"),paste0(outpath,"report_multivariate_170221.txt"), append = T)
+write_tsv(data.frame("multivariate Luca"),paste0(outpath,"report_multivariate_170221.txt"), append = T)
+
+with(df_M, coxph(PFS_M ~ call10_del_TP53 + MUT_p53_D_SUB_CLON  + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="PFS", .)%>% write_tsv(paste0(outpath,"report_multivariate_170221.txt"), append = T, col_names = T)
+write_tsv(data.frame("\n"),paste0(outpath,"report_multivariate_170221.txt"), append = T)
+with(df_M, coxph(PFS_M ~ Del_17p_composite + MUT_p53_D_SUB_CLON  + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="PFS", .)%>% write_tsv(paste0(outpath,"report_multivariate_170221.txt"), append = T, col_names = T)
+write_tsv(data.frame("\n"),paste0(outpath,"report_multivariate_170221.txt"), append = T)
+with(df_M, coxph(PFS_M ~ Del_17p_composite + Double_Hit  + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="PFS", .)%>% write_tsv(paste0(outpath,"report_multivariate_170221.txt"), append = T, col_names = T)
+write_tsv(data.frame("\n"),paste0(outpath,"report_multivariate_170221.txt"), append = T)
+
+write_tsv(data.frame("\n"),paste0(outpath,"report_multivariate_170221.txt"), append = T)
+write_tsv(data.frame("\n"),paste0(outpath,"report_multivariate_170221.txt"), append = T)
+write_tsv(data.frame("Multivariate Andrea"),paste0(outpath,"report_multivariate_170221.txt"), append = T)
+
+# MY MV PFS
+with(df_M, coxph(PFS_M ~ Fish_T_11_14 + Fish_T_14_20 + Double_Hit + Del_13q_composite + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="PFS", .)%>% write_tsv(paste0(outpath,"report_multivariate_170221.txt"), append = T, col_names = T)
+write_tsv(data.frame("\n"),paste0(outpath,"report_multivariate_170221.txt"), append = T)
+with(df_M, coxph(PFS_M ~ Fish_T_11_14 + Fish_T_14_20 + Double_Hit + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="PFS", .)%>% write_tsv(paste0(outpath,"report_multivariate_170221.txt"), append = T, col_names = T)
 
 
-# del 17 and MUT
-MV_PFS_2 <- with(df_M, coxph(PFS_M ~ MUT_p53_D_SUB_CLON + Del_17p_composite + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="PFS", .)
-write_tsv(MV_PFS_2, paste0(outpath,"report_multivariate_170221.txt"), append = T, col_names = T)
+#_______________ OS _______________
 
-MV_OS_2 <- with(df_M, coxph(OS_M ~ MUT_p53_D_SUB_CLON + Del_17p_composite  + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="OS", .)
-write_tsv(MV_OS_2, paste0(outpath,"report_multivariate_170221.txt"), append = T, col_names = T)
+write_tsv(data.frame("univariate TP53"),paste0(outpath,"report_multivariate_170221.txt"), append = T)
+with(df_M, coxph(OS_M ~ call10_del_TP53 + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="OS", .)%>% write_tsv(paste0(outpath,"report_multivariate_170221.txt"), append = T, col_names = T)
+write_tsv(data.frame("\n"),paste0(outpath,"report_multivariate_170221.txt"), append = T)
+with(df_M, coxph(OS_M ~ MUT_p53_D_SUB_CLON + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="OS", .)%>% write_tsv(paste0(outpath,"report_multivariate_170221.txt"), append = T, col_names = T)
+write_tsv(data.frame("\n"),paste0(outpath,"report_multivariate_170221.txt"), append = T)
+with(df_M, coxph(OS_M ~ del_only_AND_mut_only + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="OS", .)%>% write_tsv(paste0(outpath,"report_multivariate_170221.txt"), append = T, col_names = T)
+write_tsv(data.frame("\n"),paste0(outpath,"report_multivariate_170221.txt"), append = T)
+with(df_M, coxph(OS_M ~ Double_Hit + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="OS", .)%>% write_tsv(paste0(outpath,"report_multivariate_170221.txt"), append = T, col_names = T)
 
-
-
-# del 17 and DoubleHit
-MV_PFS_3 <- with(df_M, coxph(PFS_M ~ Double_Hit  + Del_17p_composite + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="PFS", .)
-write_tsv(MV_PFS_3, paste0(outpath,"report_multivariate_170221.txt"), append = T, col_names = T)
-
-MV_OS_3 <- with(df_M, coxph(OS_M ~ Double_Hit  + Del_17p_composite  + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="OS", .)
-write_tsv(MV_OS_3, paste0(outpath,"report_multivariate_170221.txt"), append = T, col_names = T)
-
+write_tsv(data.frame("\n"),paste0(outpath,"report_multivariate_170221.txt"), append = T)
+write_tsv(data.frame("\n"),paste0(outpath,"report_multivariate_170221.txt"), append = T)
+write_tsv(data.frame("univariate other vars"),paste0(outpath,"report_multivariate_170221.txt"), append = T)
 
 
-# del 17 and DoubleHit
-MV_PFS_3 <- with(df_M, coxph(PFS_M ~ Double_Hit  + Del_17p_composite + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="PFS", .)
-write_tsv(MV_PFS_3, paste0(outpath,"report_multivariate_170221.txt"), append = T, col_names = T)
+write_tsv(data.frame("\n"),paste0(outpath,"report_multivariate_170221.txt"), append = T)
+with(df_M, coxph(OS_M ~ D_traslocazione + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="OS", .)%>% write_tsv(paste0(outpath,"report_multivariate_170221.txt"), append = T, col_names = T)
+write_tsv(data.frame("\n"),paste0(outpath,"report_multivariate_170221.txt"), append = T)
+with(df_M, coxph(OS_M ~ TRASLOCATI + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="OS", .)%>% write_tsv(paste0(outpath,"report_multivariate_170221.txt"), append = T, col_names = T)
+write_tsv(data.frame("\n"),paste0(outpath,"report_multivariate_170221.txt"), append = T)
+with(df_M, coxph(OS_M ~ Fish_T_4_14 + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="OS", .)%>% write_tsv(paste0(outpath,"report_multivariate_170221.txt"), append = T, col_names = T)
+write_tsv(data.frame("\n"),paste0(outpath,"report_multivariate_170221.txt"), append = T)
+with(df_M, coxph(OS_M ~ Fish_T_6_14_ + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="OS", .)%>% write_tsv(paste0(outpath,"report_multivariate_170221.txt"), append = T, col_names = T)
+write_tsv(data.frame("\n"),paste0(outpath,"report_multivariate_170221.txt"), append = T)
+with(df_M, coxph(OS_M ~ Fish_T_11_14 + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="OS", .) %>% write_tsv(paste0(outpath,"report_multivariate_170221.txt"), append = T, col_names = T)
+write_tsv(data.frame("\n"),paste0(outpath,"report_multivariate_170221.txt"), append = T)
+with(df_M, coxph(OS_M ~ Fish_T_14_16 + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="OS", .)%>% write_tsv(paste0(outpath,"report_multivariate_170221.txt"), append = T, col_names = T)
+write_tsv(data.frame("\n"),paste0(outpath,"report_multivariate_170221.txt"), append = T)
+with(df_M, coxph(OS_M ~ Fish_T_14_20 + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="OS", .) %>% write_tsv(paste0(outpath,"report_multivariate_170221.txt"), append = T, col_names = T)
+write_tsv(data.frame("\n"),paste0(outpath,"report_multivariate_170221.txt"), append = T)
+with(df_M, coxph(OS_M ~ Del_13q_composite + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="OS", .) %>% write_tsv(paste0(outpath,"report_multivariate_170221.txt"), append = T, col_names = T)
+write_tsv(data.frame("\n"),paste0(outpath,"report_multivariate_170221.txt"), append = T)
+with(df_M, coxph(OS_M ~ Del_17p_composite + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="OS", .) %>% write_tsv(paste0(outpath,"report_multivariate_170221.txt"), append = T, col_names = T)
+write_tsv(data.frame("\n"),paste0(outpath,"report_multivariate_170221.txt"), append = T)
+with(df_M, coxph(OS_M ~ Del_1p_composite + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="OS", .) %>% write_tsv(paste0(outpath,"report_multivariate_170221.txt"), append = T, col_names = T)
+write_tsv(data.frame("\n"),paste0(outpath,"report_multivariate_170221.txt"), append = T)
+with(df_M, coxph(OS_M ~ Amp_1q_composite + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="OS", .)%>% write_tsv(paste0(outpath,"report_multivariate_170221.txt"), append = T, col_names = T)
+write_tsv(data.frame("\n"),paste0(outpath,"report_multivariate_170221.txt"), append = T)
+with(df_M, coxph(OS_M ~ Fish_iper + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="OS", .) %>% write_tsv(paste0(outpath,"report_multivariate_170221.txt"), append = T, col_names = T)
+write_tsv(data.frame("\n"),paste0(outpath,"report_multivariate_170221.txt"), append = T)
+with(df_M, coxph(OS_M ~ plt_m_150 + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="OS", .) %>% write_tsv(paste0(outpath,"report_multivariate_170221.txt"), append = T, col_names = T)
+write_tsv(data.frame("\n"),paste0(outpath,"report_multivariate_170221.txt"), append = T)
+with(df_M, coxph(OS_M ~ Age + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="OS", .)%>% write_tsv(paste0(outpath,"report_multivariate_170221.txt"), append = T, col_names = T)
 
-MV_OS_3 <- with(df_M, coxph(OS_M ~ Double_Hit  + Del_17p_composite  + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="OS", .)
-write_tsv(MV_OS_3, paste0(outpath,"report_multivariate_170221.txt"), append = T, col_names = T)
+write_tsv(data.frame("\n"),paste0(outpath,"report_multivariate_170221.txt"), append = T)
+write_tsv(data.frame("\n"),paste0(outpath,"report_multivariate_170221.txt"), append = T)
+write_tsv(data.frame("multivariate Luca"),paste0(outpath,"report_multivariate_170221.txt"), append = T)
 
 
+write_tsv(data.frame("\n"),paste0(outpath,"report_multivariate_170221.txt"), append = T)
+with(df_M, coxph(OS_M ~ call10_del_TP53 + Del_13q_composite  + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="OS", .) %>% write_tsv(paste0(outpath,"report_multivariate_170221.txt"), append = T, col_names = T)
+write_tsv(data.frame("\n"),paste0(outpath,"report_multivariate_170221.txt"), append = T)
+with(df_M, coxph(OS_M ~ Del_17p_composite + plt_m_150 + MUT_p53_D_SUB_CLON  + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="OS", .)%>% write_tsv(paste0(outpath,"report_multivariate_170221.txt"), append = T, col_names = T)
+write_tsv(data.frame("\n"),paste0(outpath,"report_multivariate_170221.txt"), append = T)
+with(df_M, coxph(OS_M ~ Del_17p_composite + plt_m_150 + Del_13q_composite + Double_Hit  + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="OS", .)%>% write_tsv(paste0(outpath,"report_multivariate_170221.txt"), append = T, col_names = T)
 
+write_tsv(data.frame("\n"),paste0(outpath,"report_multivariate_170221.txt"), append = T)
+write_tsv(data.frame("\n"),paste0(outpath,"report_multivariate_170221.txt"), append = T)
+write_tsv(data.frame("multivariate Andrea"),paste0(outpath,"report_multivariate_170221.txt"), append = T)
 
-# del 17 - DoubleHit - del 13 - plt m 150
-MV_PFS_3 <- with(df, coxph(PFS_M ~ Double_Hit  + Del_17p_composite + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="PFS", .)
-write_tsv(MV_PFS_3, paste0(outpath,"report_multivariate_170221.txt"), append = T, col_names = T)
-
-MV_OS_3 <- with(df, coxph(OS_M ~ Double_Hit  +  Del_13q_composite + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="OS", .)
-write_tsv(MV_OS_3, paste0(outpath,"report_multivariate_170221.txt"), append = T, col_names = T)
+write_tsv(data.frame("\n"),paste0(outpath,"report_multivariate_170221.txt"), append = T)
+with(df_M, coxph(OS_M ~ Fish_T_11_14 + Fish_T_14_20 + Del_13q_composite + Del_1p_composite + Fish_iper + plt_m_150+ Double_Hit  + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="OS", .) %>% write_tsv(paste0(outpath,"report_multivariate_170221.txt"), append = T, col_names = T)
+write_tsv(data.frame("\n"),paste0(outpath,"report_multivariate_170221.txt"), append = T)
+with(df_M, coxph(OS_M ~ Fish_T_14_20 + Del_13q_composite + Double_Hit  + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="OS", .) %>% write_tsv(paste0(outpath,"report_multivariate_170221.txt"), append = T, col_names = T)
 
