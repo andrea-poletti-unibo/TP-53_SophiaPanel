@@ -174,11 +174,16 @@ df$group <- ifelse(df$call10_del_TP53==1 & df$MUT_p53_D_SUB_CLON==1, "Double_Hit
 
 
 
+df$group_clonal_subclona <- ifelse(df$TP53_adj<1.5,"del clonal", ifelse(df$TP53_adj<1.9,"subclonal", "wt"))
+
+df$group_clonal_subclona %>% table
+
+
 ##################################################################################
 ######################### NEW SURV CURVES for PAPER ##############################
 ##################################################################################
 
-outpath <- "C:/Users/mm_gr/Alma Mater Studiorum Università di Bologna/PROJECT SophiaPanel - TP53 - Documenti/Paper_figures/test_220221//"
+outpath <- "C:/Users/mm_gr/Alma Mater Studiorum Università di Bologna/PROJECT SophiaPanel - TP53 - Documenti/Paper_figures/test_220221/"
 
 
 gmodels::CrossTable(df$call10_del_TP53, df$MUT_p53_D_SUB_CLON, prop.r = F, prop.c = F, prop.t = F, prop.chisq = F)
@@ -195,27 +200,27 @@ PFS2 <- Surv( time = df2$PFS_time_months, event = df2$PFS_I_event)
 twoPFS2 <- Surv( time=df2$twoPFS_months, event = df2$twoPFS_event)
 
 
-gg <- ggsurvplot(survfit(OS2 ~ df2$TP53_mutation_no_del, data = df2), pval = T, risk.table = T, xlab = "OS",
+gg <- ggsurvplot(survfit(OS2 ~ df2$TP53_mutation_no_del, data = df2), pval = F, risk.table = T, xlab = "OS",
                  surv.median.line = "hv", break.time.by = 12, legend= c(0.85,0.9), legend.title="", 
-                 legend.labs=c("TP53 wt", "TP53 1 hit (mut+ del-)"), tables.y.text = F, 
+                 legend.labs=c("TP53 wt", "TP53 only mut"), tables.y.text = F, 
                  risk.table.y.text.col = TRUE, font.legend=c("bold"))
 print(gg)
 
 ggsave(plot = print(gg), filename = "only_mut_OS.png", path = outpath, dpi = 300, height = 6, width = 6)
 
 
-gg <- ggsurvplot(survfit(PFS2 ~ df2$TP53_mutation_no_del, data = df2), pval = T, risk.table = T, xlab = "PFS",
+gg <- ggsurvplot(survfit(PFS2 ~ df2$TP53_mutation_no_del, data = df2), pval = F, risk.table = T, xlab = "PFS",
                  surv.median.line = "hv", break.time.by = 12, legend= c(0.85,0.9), legend.title="", 
-                 legend.labs=c("TP53 wt", "TP53 1 hit (mut+ del-)"), tables.y.text = F, 
+                 legend.labs=c("TP53 wt", "TP53 only mut"), tables.y.text = F, 
                  risk.table.y.text.col = TRUE, font.legend=c("bold"))
 print(gg)
 
 ggsave(plot = print(gg), filename = "only_mut_PFS.png", path = outpath, dpi = 300, height = 6, width = 6)
 
 
-gg <- ggsurvplot(survfit(twoPFS2 ~ df2$TP53_mutation_no_del, data = df2), pval = T, risk.table = T, xlab = "PFS2",
+gg <- ggsurvplot(survfit(twoPFS2 ~ df2$TP53_mutation_no_del, data = df2), pval = F, risk.table = T, xlab = "PFS2",
                  surv.median.line = "hv", break.time.by = 12, legend= c(0.85,0.9), legend.title="", 
-                 legend.labs=c("TP53 wt", "TP53 1 hit (mut+ del-)"), tables.y.text = F, 
+                 legend.labs=c("TP53 wt", "TP53 only mut"), tables.y.text = F, 
                  risk.table.y.text.col = TRUE, font.legend=c("bold"))
 print(gg)
 
@@ -245,27 +250,27 @@ PFS3 <- Surv( time = df3$PFS_time_months, event = df3$PFS_I_event)
 twoPFS3 <- Surv( time=df3$twoPFS_months, event = df3$twoPFS_event)
 
 
-gg <- ggsurvplot(survfit(OS3 ~ df3$TP53_del_no_mut, data = df3), pval = T, risk.table = T, xlab = "OS",
+gg <- ggsurvplot(survfit(OS3 ~ df3$TP53_del_no_mut, data = df3), pval = F, risk.table = T, xlab = "OS",
                  surv.median.line = "hv", break.time.by = 12, legend= c(0.85,0.9), legend.title="", 
-                 legend.labs=c("TP53 wt", "TP53 1 hit (mut- del+)"), tables.y.text = F, 
+                 legend.labs=c("TP53 wt", "TP53 only del"), tables.y.text = F, 
                  risk.table.y.text.col = TRUE, font.legend=c("bold")) 
 print(gg)
 
 ggsave(plot = print(gg), filename = "only_del_OS.png", path = outpath, dpi = 300, height = 6, width = 6)
 
 
-gg <- ggsurvplot(survfit(PFS3 ~ df3$TP53_del_no_mut, data = df3), pval = T, risk.table = T, xlab = "PFS",
+gg <- ggsurvplot(survfit(PFS3 ~ df3$TP53_del_no_mut, data = df3), pval = F, risk.table = T, xlab = "PFS",
                  surv.median.line = "hv", break.time.by = 12, legend= c(0.85,0.9), legend.title="", 
-                 legend.labs=c("TP53 wt", "TP53 1 hit (mut- del+)"), tables.y.text = F, 
+                 legend.labs=c("TP53 wt", "TP53 only del"), tables.y.text = F, 
                  risk.table.y.text.col = TRUE, font.legend=c("bold"))
 print(gg)
 
 ggsave(plot = print(gg), filename = "only_del_PFS.png", path = outpath, dpi = 300, height = 6, width = 6)
 
 
-gg <- ggsurvplot(survfit(twoPFS3 ~ df3$TP53_del_no_mut, data = df3), pval = T, risk.table = T, xlab = "PFS2",
+gg <- ggsurvplot(survfit(twoPFS3 ~ df3$TP53_del_no_mut, data = df3), pval = F, risk.table = T, xlab = "PFS2",
                  surv.median.line = "hv", break.time.by = 12, legend= c(0.85,0.9), legend.title="", 
-                 legend.labs=c("TP53 wt", "TP53 1 hit (mut- del+)"), tables.y.text = F, 
+                 legend.labs=c("TP53 wt", "TP53 only del"), tables.y.text = F, 
                  risk.table.y.text.col = TRUE, font.legend=c("bold"))
 print(gg)
 
@@ -297,8 +302,8 @@ OS4 <- Surv( time = df4$OS_time_months, event = df4$OS_event_death)
 PFS4 <- Surv( time = df4$PFS_time_months, event = df4$PFS_I_event)
 twoPFS4 <- Surv( time = df4$twoPFS_months, event = df4$twoPFS_event)
 
-gg <- ggsurvplot(survfit(OS4 ~ df4$del_only_AND_mut_only, data = df4), legend.labs=c("TP53 wt", "TP53 1 hit (mut+ or del+)"),
-                 pval = T, risk.table = T, xlab = "OS", surv.median.line = "hv", break.time.by = 12, legend= c(0.85,0.9), 
+gg <- ggsurvplot(survfit(OS4 ~ df4$del_only_AND_mut_only, data = df4), legend.labs=c("TP53 wt", "TP53 mut or del"),
+                 pval = F, risk.table = T, xlab = "OS", surv.median.line = "hv", break.time.by = 12, legend= c(0.85,0.9), 
                  legend.title="", tables.y.text = F, risk.table.y.text.col = TRUE, font.legend=c("bold"))
 
 print(gg)
@@ -306,8 +311,8 @@ print(gg)
 ggsave(plot = print(gg), filename = "1HIT_OS.png", path = outpath, dpi = 300, height = 6, width = 6)
 
 
-gg <- ggsurvplot(survfit(PFS4 ~ df4$del_only_AND_mut_only, data = df4), legend.labs=c("TP53 wt", "TP53 1 hit (mut+ or del+)"),
-                 pval = T, risk.table = T, xlab = "PFS", surv.median.line = "hv", break.time.by = 12, legend= c(0.85,0.9), 
+gg <- ggsurvplot(survfit(PFS4 ~ df4$del_only_AND_mut_only, data = df4), legend.labs=c("TP53 wt", "TP53 mut or del"),
+                 pval = F, risk.table = T, xlab = "PFS", surv.median.line = "hv", break.time.by = 12, legend= c(0.85,0.9), 
                  legend.title="", tables.y.text = F, risk.table.y.text.col = TRUE, font.legend=c("bold"))
 
 print(gg)
@@ -315,8 +320,8 @@ print(gg)
 ggsave(plot = print(gg), filename = "1HIT_PFS.png", path = outpath, dpi = 300, height = 6, width = 6)
 
 
-gg <- ggsurvplot(survfit(twoPFS4 ~ df4$del_only_AND_mut_only, data = df4), legend.labs=c("TP53 wt", "TP53 1 hit (mut+ or del+)"),
-                 pval = T, risk.table = T, xlab = "PFS2", surv.median.line = "hv", break.time.by = 12, legend= c(0.85,0.9), 
+gg <- ggsurvplot(survfit(twoPFS4 ~ df4$del_only_AND_mut_only, data = df4), legend.labs=c("TP53 wt", "TP53 mut or del"),
+                 pval = F, risk.table = T, xlab = "PFS2", surv.median.line = "hv", break.time.by = 12, legend= c(0.85,0.9), 
                  legend.title="", tables.y.text = F, risk.table.y.text.col = TRUE, font.legend=c("bold"))
 
 print(gg)
@@ -350,7 +355,7 @@ twoPFS5 <- Surv( time = df5$twoPFS_months, event = df5$twoPFS_event)
 df5$Double_Hit <- ifelse(df5$MUT_p53_D_SUB_CLON==1 & df5$call10_del_TP53==1, 1, 0)
 
 gg <- ggsurvplot(survfit(OS5 ~ df5$Double_Hit, data = df5), legend.labs=c("TP53 wt", "TP53 double-hit"),
-                 pval = T, risk.table = T, xlab = "OS", surv.median.line = "hv", break.time.by = 12, legend= c(0.85,0.9), 
+                 pval = F, risk.table = T, xlab = "OS", surv.median.line = "hv", break.time.by = 12, legend= c(0.85,0.9), 
                  legend.title="", tables.y.text = F, risk.table.y.text.col = TRUE, font.legend=c("bold"))
 
 print(gg)
@@ -359,7 +364,7 @@ ggsave(plot = print(gg), filename = "Double-HIT_OS.png", path = outpath, dpi = 3
 
 
 gg <-ggsurvplot(survfit(PFS5 ~ df5$Double_Hit, data = df5), legend.labs=c("TP53 wt", "TP53 double-hit"),
-                pval = T, risk.table = T, xlab = "PFS", surv.median.line = "hv", break.time.by = 12, legend= c(0.85,0.9), 
+                pval = F, risk.table = T, xlab = "PFS", surv.median.line = "hv", break.time.by = 12, legend= c(0.85,0.9), 
                 legend.title="", tables.y.text = F, risk.table.y.text.col = TRUE, font.legend=c("bold"))
 
 print(gg)
@@ -369,7 +374,7 @@ ggsave(plot = print(gg), filename = "Double-HIT_PFS.png", path = outpath, dpi = 
 
 
 gg <-ggsurvplot(survfit(twoPFS5 ~ df5$Double_Hit, data = df5), legend.labs=c("TP53 wt", "TP53 double-hit"),
-                pval = T, risk.table = T, xlab = "PFS2", surv.median.line = "hv", break.time.by = 12, legend= c(0.85,0.9), 
+                pval = F, risk.table = T, xlab = "PFS2", surv.median.line = "hv", break.time.by = 12, legend= c(0.85,0.9), 
                 legend.title="", tables.y.text = F, risk.table.y.text.col = TRUE, font.legend=c("bold"))
 
 print(gg)
@@ -392,7 +397,7 @@ fwrite(c_twoPFS5 ,paste0(outpath,"report_univariate_170221.txt"), append = T, se
 
 #____________________ 4) three curves _______________________
 
-gg <- ggsurvplot(survfit(OS ~ df$group, data = df) , pval = T, risk.table = T, xlab = "OS",
+gg <- ggsurvplot(survfit(OS ~ df$group, data = df) , pval = F, risk.table = T, xlab = "OS",
                  surv.median.line = "hv", break.time.by = 12, legend= c(0.8,0.9), legend.title="", 
                  legend.labs=c("TP53 double-hit", "TP53 1 Hit", "TP53 wt"), tables.y.text = F, 
                  risk.table.y.text.col = TRUE, font.legend=c("bold"))
@@ -401,7 +406,7 @@ print(gg)
 ggsave(plot = print(gg), filename = "three_curves_OS.png", path = outpath, dpi = 300, height = 6, width = 6)
 
 
-gg <- ggsurvplot(survfit(PFS ~ df$group, data = df), pval = T, risk.table = T, xlab = "PFS",
+gg <- ggsurvplot(survfit(PFS ~ df$group, data = df), pval = F, risk.table = T, xlab = "PFS",
                  surv.median.line = "hv", break.time.by = 12, legend= c(0.8,0.9), legend.title="", 
                  legend.labs=c("TP53 double-hit", "TP53 1 Hit", "TP53 wt"), tables.y.text = F, 
                  risk.table.y.text.col = TRUE, font.legend=c("bold"))
@@ -411,7 +416,7 @@ ggsave(plot = print(gg), filename = "three_curves_PFS.png", path = outpath, dpi 
 
 
 
-gg <- ggsurvplot(survfit(twoPFS ~ df$group, data = df), pval = T, risk.table = T, xlab = "PFS2",
+gg <- ggsurvplot(survfit(twoPFS ~ df$group, data = df), pval = F, risk.table = T, xlab = "PFS2",
                  surv.median.line = "hv", break.time.by = 12, legend= c(0.8,0.9), legend.title="", 
                  legend.labs=c("TP53 double-hit", "TP53 1 Hit", "TP53 wt"), tables.y.text = F, 
                  risk.table.y.text.col = TRUE, font.legend=c("bold"))
@@ -419,63 +424,33 @@ print(gg)
 
 ggsave(plot = print(gg), filename = "three_curves_PFS2.png", path = outpath, dpi = 300, height = 6, width = 6)
 
-
-#=============== protocollo ===================
-
-gg <- ggsurvplot(survfit(OS ~ df$PROTOCOL, data = df) , pval = T, risk.table = T, xlab = "OS",
-                 surv.median.line = "hv", break.time.by = 12, legend= c(0.8,0.9), legend.title="", 
-                 tables.y.text = F, 
-                 risk.table.y.text.col = TRUE, font.legend=c("bold"))
-print(gg)
-
-ggsave(plot = print(gg), filename = "PROTOCOL_OS.png", path = outpath, dpi = 300, height = 6, width = 6)
-
-
-gg <- ggsurvplot(survfit(PFS ~ df$PROTOCOL, data = df), pval = T, risk.table = T, xlab = "PFS",
-                 surv.median.line = "hv", break.time.by = 12, legend= c(0.8,0.9), legend.title="", 
-                 tables.y.text = F, 
-                 risk.table.y.text.col = TRUE, font.legend=c("bold"))
-print(gg)
-
-ggsave(plot = print(gg), filename = "PROTOCOL_PFS.png", path = outpath, dpi = 300, height = 6, width = 6)
-
-
-# df$group = relevel(df$group, ref = "WT")
-# coxph(OS ~ df$group + strata(PROTOCOL), data = df)  %>% summary
-# coxph(PFS ~ df$group + strata(ISS), data = df) %>% summary
-
-
-####################### UNIVARIATE ########################
 # 
-# # only mut
-# c_OS2 <- with(df2, coxph(OS2 ~ TP53_mutation_no_del + strata(ISS) + strata(PROTOCOL))) %>% summary %>% cbind(.[[7]], .[[8]]) %>% as.data.frame()
-# c_OS2
+# #=============== protocollo ===================
 # 
-# c_PFS2 <- with(df2, coxph(PFS2 ~ TP53_mutation_no_del + strata(ISS) + strata(PROTOCOL))) %>% summary %>% cbind(.[[7]], .[[8]]) %>% as.data.frame()
-# c_PFS2
+# gg <- ggsurvplot(survfit(OS ~ df$PROTOCOL, data = df) , pval = F, risk.table = T, xlab = "OS",
+#                  surv.median.line = "hv", break.time.by = 12, legend= c(0.8,0.9), legend.title="", 
+#                  tables.y.text = F, 
+#                  risk.table.y.text.col = TRUE, font.legend=c("bold"))
+# print(gg)
 # 
-# # only del
-# coxph(OS3 ~ df3$TP53_del_no_mut + strata(ISS) + strata(PROTOCOL), data = df3) %>% summary
-# coxph(PFS3 ~ df3$TP53_del_no_mut + strata(ISS) + strata(PROTOCOL), data = df3) %>% summary
+# ggsave(plot = print(gg), filename = "PROTOCOL_OS.png", path = outpath, dpi = 300, height = 6, width = 6)
 # 
-# # single hit
-# coxph(OS4 ~ df4$del_only_AND_mut_only + strata(ISS) + strata(PROTOCOL), data = df4) %>% summary
-# coxph(PFS4 ~ df4$del_only_AND_mut_only + strata(ISS) + strata(PROTOCOL), data = df4) %>% summary
 # 
-# # Double hit
-# coxph(OS5 ~ df5$Double_Hit + strata(ISS) + strata(PROTOCOL), data = df5) %>% summary
-# coxph(PFS5 ~ df5$Double_Hit + strata(ISS) + strata(PROTOCOL), data = df5) %>% summary
+# gg <- ggsurvplot(survfit(PFS ~ df$PROTOCOL, data = df), pval = F, risk.table = T, xlab = "PFS",
+#                  surv.median.line = "hv", break.time.by = 12, legend= c(0.8,0.9), legend.title="", 
+#                  tables.y.text = F, 
+#                  risk.table.y.text.col = TRUE, font.legend=c("bold"))
+# print(gg)
+# 
+# ggsave(plot = print(gg), filename = "PROTOCOL_PFS.png", path = outpath, dpi = 300, height = 6, width = 6)
 
-coxph(OS ~ df$Del_13q_composite + strata(ISS) , data = df) %>% summary
-coxph(PFS ~ df$Del_13q_composite + strata(ISS) , data = df) %>% summary
 
 
-
-######################### second PFS analysis ############################
-
+########################################################################### 
+######################### second PFS analysis #############################
+########################################################################### 
 
 #_____________ compute second PFS _____________
-
 
 # query per tutti i pazienti del DB che hanno i dati molecolari di relapse (65)
 query_relapse <- sqlFetch(db, "Copia di Query_Survival_Analysis")
@@ -538,22 +513,32 @@ DF2$call10_del_TP53_R <- ifelse(DF2$TP53_adj_R <= 1.9 , 1, 0)
 DF2$call10_del_TP53_D %>% table
 DF2$call10_del_TP53_R %>% table
 
+# del 50%
+DF2$call50_del_TP53_D <- ifelse(DF2$TP53_adj_D <= 1.5 , 1, 0)
+DF2$call50_del_TP53_R <- ifelse(DF2$TP53_adj_R <= 1.5 , 1, 0)
+
+DF2$call50_del_TP53_D %>% table
+DF2$call50_del_TP53_R %>% table
+
+
 gmodels::CrossTable(DF2$call10_del_TP53_R, DF2$MUT_P53_R_SUB_CLON, prop.r = F, prop.c = F, prop.t = F, prop.chisq = F)
 
+gmodels::CrossTable(DF2$call10_del_TP53_R, DF2$call50_del_TP53_R, prop.r = F, prop.c = F, prop.t = F, prop.chisq = F)
+
+# ##### Exclude ISS missing or other missing data #####
+# 
+# DF2 <- DF2 %>% drop_na(ISS, call10_del_TP53_D, call10_del_TP53_R, MUT_p53_D_SUB_CLON, MUT_P53_R_SUB_CLON)
+
+
+# DF2 %>% select(ISS, call10_del_TP53_D, call10_del_TP53_R, MUT_p53_D_SUB_CLON, MUT_P53_R_SUB_CLON, secondPFS_event, secondPFS_months) %>% View
 
 #_____ malgh _______
-
 
 # DF2 %>% select(UPN_tp53_project, secondPFS_event, secondPFS_months, call10_del_TP53_R, MUT_P53_R_SUB_CLON, Double_Hit_R) %>% View
 # DF2 %>% filter(group=="WT") %>% select(UPN_tp53_project, secondPFS_event, secondPFS_months, group) %>% View
 
-
-DF2$group %>% table
-
 malgh <- c("UPN238","5321","4829","4141","ANELLI")
-
 DF2 <- DF2 %>% filter(!(UPN_tp53_project %in% malgh))
-
 
 
 #________________ a) only del (14 pts) vs wt (30 pts) - second PFS __________________
@@ -562,9 +547,9 @@ DF2a <- DF2 %>% filter(DF2$MUT_P53_CCF_R==0)
 
 secondPFSa <- Surv( time = DF2a$secondPFS_months, event = DF2a$secondPFS_event)
 
-gg <- ggsurvplot(survfit(secondPFSa ~ DF2a$call10_del_TP53_R, data = DF2a) , pval = T, risk.table = T, xlab = "second PFS",
+gg <- ggsurvplot(survfit(secondPFSa ~ DF2a$call10_del_TP53_R, data = DF2a) , pval = F, risk.table = T, xlab = "second PFS",
                  surv.median.line = "hv", break.time.by = 12, legend= c(0.8,0.9), legend.title="", 
-                 legend.labs=c("TP53 wt", "TP53 1 hit (mut- del+)"), tables.y.text = F, 
+                 legend.labs=c("TP53 wt", "TP53 only del"), tables.y.text = F, 
                  risk.table.y.text.col = TRUE, font.legend=c("bold"))
 print(gg)
 
@@ -592,9 +577,9 @@ gmodels::CrossTable(DF2b$call10_del_TP53_R, DF2b$MUT_P53_R_SUB_CLON, prop.r = F,
 secondPFSb <- Surv( time = DF2b$secondPFS_months, event = DF2b$secondPFS_event)
 
 
-gg <- ggsurvplot(survfit(secondPFSb ~ DF2b$del_only_AND_mut_only_R, data = DF2b) , pval = T, risk.table = T, xlab = "second PFS",
+gg <- ggsurvplot(survfit(secondPFSb ~ DF2b$del_only_AND_mut_only_R, data = DF2b) , pval = F, risk.table = T, xlab = "second PFS",
                  surv.median.line = "hv", break.time.by = 12, legend= c(0.8,0.9), legend.title="", 
-                 legend.labs=c("TP53 wt", "TP53 1 hit (mut+ or del+)"), tables.y.text = F, 
+                 legend.labs=c("TP53 wt", "TP53 mut or del"), tables.y.text = F, 
                  risk.table.y.text.col = TRUE, font.legend=c("bold"))
 print(gg)
 
@@ -604,6 +589,9 @@ ggsave(plot = print(gg), filename = "1HIT_secondPFS.png", path = outpath, dpi = 
 # univariata
 c_secPFSb <- with(DF2b, coxph(secondPFSb ~ del_only_AND_mut_only_R + strata(ISS) )) %>% summary %>% cbind("secondPFS", .[[7]], .[[8]]) %>% as.data.table(keep.rownames = "var" ) %>% .[,-c(2,4,6,7,9,10)]
 fwrite(c_secPFSb ,paste0(outpath,"report_univariate_170221.txt"), append = T, sep = "\t")
+
+
+
 
 
 #_______________ c) Double-Hit (5 pts) vs wt (30 pts) - second PFS ___________________
@@ -617,7 +605,7 @@ gmodels::CrossTable(DF2c$call10_del_TP53_R, DF2c$MUT_P53_R_SUB_CLON, prop.r = F,
 secondPFSc <- Surv( time = DF2c$secondPFS_months, event = DF2c$secondPFS_event)
 
 
-gg <- ggsurvplot(survfit(secondPFSc ~ DF2c$Double_Hit_R, data = DF2c) , pval = T, risk.table = T, xlab = "second PFS",
+gg <- ggsurvplot(survfit(secondPFSc ~ DF2c$Double_Hit_R, data = DF2c) , pval = F, risk.table = T, xlab = "second PFS",
                  surv.median.line = "hv", break.time.by = 12, legend= c(0.8,0.9), legend.title="", 
                  legend.labs=c("TP53 wt", "TP53 double-hit"), tables.y.text = F, 
                  risk.table.y.text.col = TRUE, font.legend=c("bold"))
@@ -642,7 +630,7 @@ gmodels::CrossTable(DF2$group, prop.r = F, prop.c = F, prop.t = F, prop.chisq = 
 secondPFS <- Surv( time = DF2$secondPFS_months, event = DF2$secondPFS_event)
 
 
-gg <- ggsurvplot(survfit(secondPFS ~ DF2$group, data = DF2) , pval = T, risk.table = T, xlab = "second PFS",
+gg <- ggsurvplot(survfit(secondPFS ~ DF2$group, data = DF2) , pval = F, risk.table = T, xlab = "second PFS",
                  surv.median.line = "hv", break.time.by = 12, legend= c(0.8,0.9), legend.title="", 
                  legend.labs=c("TP53 double-hit", "TP53 1 Hit", "TP53 wt"), tables.y.text = F, 
                  risk.table.y.text.col = TRUE, font.legend=c("bold"))
@@ -797,9 +785,8 @@ write_tsv(data.frame("\n"),paste0(outpath,"report_multivariate_170221.txt"), app
 write_tsv(data.frame("Multivariate Andrea"),paste0(outpath,"report_multivariate_170221.txt"), append = T)
 
 # MY MV PFS
-with(df_M, coxph(PFS_M ~ Fish_T_11_14 + Fish_T_14_20 + Double_Hit + Del_13q_composite + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="PFS", .)%>% write_tsv(paste0(outpath,"report_multivariate_170221.txt"), append = T, col_names = T)
+with(df_M, coxph(PFS_M ~  Double_Hit + Del_17p_composite + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="PFS", .)%>% write_tsv(paste0(outpath,"report_multivariate_170221.txt"), append = T, col_names = T)
 write_tsv(data.frame("\n"),paste0(outpath,"report_multivariate_170221.txt"), append = T)
-with(df_M, coxph(PFS_M ~ Fish_T_11_14 + Fish_T_14_20 + Double_Hit + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="PFS", .)%>% write_tsv(paste0(outpath,"report_multivariate_170221.txt"), append = T, col_names = T)
 
 
 #_______________ OS _______________
@@ -864,7 +851,8 @@ write_tsv(data.frame("\n"),paste0(outpath,"report_multivariate_170221.txt"), app
 write_tsv(data.frame("multivariate Andrea"),paste0(outpath,"report_multivariate_170221.txt"), append = T)
 
 write_tsv(data.frame("\n"),paste0(outpath,"report_multivariate_170221.txt"), append = T)
-with(df_M, coxph(OS_M ~ Fish_T_11_14 + Fish_T_14_20 + Del_13q_composite + Del_1p_composite + Fish_iper + plt_m_150+ Double_Hit  + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="OS", .) %>% write_tsv(paste0(outpath,"report_multivariate_170221.txt"), append = T, col_names = T)
+with(df_M, coxph(OS_M ~ Del_1p_composite + plt_m_150 + Double_Hit + Del_17p_composite + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="OS", .) %>% write_tsv(paste0(outpath,"report_multivariate_170221.txt"), append = T, col_names = T)
 write_tsv(data.frame("\n"),paste0(outpath,"report_multivariate_170221.txt"), append = T)
-with(df_M, coxph(OS_M ~ Fish_T_14_20 + Del_13q_composite + Double_Hit  + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="OS", .) %>% write_tsv(paste0(outpath,"report_multivariate_170221.txt"), append = T, col_names = T)
+with(df_M, coxph(OS_M ~ plt_m_150 + Double_Hit + Del_17p_composite + strata(ISS) )) %>% tidy( exponentiate =T, conf.int = T) %>% cbind(surv="OS", .) %>% write_tsv(paste0(outpath,"report_multivariate_170221.txt"), append = T, col_names = T)
+
 
