@@ -3,7 +3,7 @@ library(RODBC)
 library(data.table)
 library(tidyverse)
 
-db <- odbcConnectAccess2007("C:/Users/mm_gr/Alma Mater Studiorum UniversitÃ  di Bologna/PROJECT SophiaPanel - TP53 - Documenti/TP53_DB_v1.accdb")
+db <- odbcConnectAccess2007("C:/Users/mm_gr/Alma Mater Studiorum Università di Bologna/PROJECT SophiaPanel - TP53 - Documenti/TP53_DB_v1.accdb")
 
 TABS <- sqlTables(db)$TABLE_NAME
 TABS
