@@ -1,0 +1,91 @@
+---
+title: 'Revision Report: ASCT TX vs TP53 altered'
+output:
+  pdf_document: default
+  html_document:
+    df_print: kable
+date: "24/06/21"
+---
+
+```{r include=FALSE}
+library(RODBC)
+library(data.table)
+library(tidyverse)
+library(survival)
+library(survminer)
+library(broom)
+
+# full file path to Access DB
+file_path <- "C:/Users/mm_gr/Alma Mater Studiorum Università di Bologna/PROJECT SophiaPanel - TP53 - Documenti/TP53_DB_v1.accdb"
+
+# pass MS Access file path to connection string
+
+db <- odbcConnectAccess2007(file_path)
+
+TABS <- sqlTables(db)$TABLE_NAME
+
+df <- sqlFetch(db, "Query_Survival_Analysis_CompositeCalls")
+
+
+
+################# SET FLAG #####################
+df$flag <- ifelse(df$PROTOCOLLO != "BO2005" & df$PROTOCOLLO != "EMN02" & 
+                    df$TTP_I_months <= 24 & df$Prog_I==1 &
+                    df$TP53_adj >= 1.9 & df$MUT_p53_D_SUB_CLON ==0 , 
+                  1, 0)
+table(df$flag)
+
+table(df$patient_flag, df$flag)
+
+df <- df %>% filter(flag != 1)
+#________________ data prep _________________________
+# create the label for del tp53 call
+
+df$call10_del_TP53 <- ifelse(df$TP53_adj <= 1.9, 1,0)
+
+#______ revision protocol ________
+df$PROTOCOL <- df$PROTOCOLLO %>% recode("FORTE"="AMB", "FP - EMN02"="AMB", "FP - BO2005"="AMB" )
+df$PROTOCOL %>% table
+
+#____ create analysis variables______
+df$TP53_mutation_no_del <- ifelse(df$call10_del_TP53==0 & df$MUT_p53_D_SUB_CLON==1, 1, 0)
+df$TP53_del_no_mut <- ifelse(df$call10_del_TP53==1 & df$MUT_p53_D_SUB_CLON==0, 1, 0)
+df$del_only_AND_mut_only <- ifelse(df$call10_del_TP53==1 & df$MUT_p53_D_SUB_CLON==0 | df$call10_del_TP53==0 & df$MUT_p53_D_SUB_CLON==1, 1, 0 )
+df$Double_Hit <- ifelse(df$MUT_p53_D_SUB_CLON==1 & df$call10_del_TP53==1, 1, 0)
+
+df$group <- ifelse(df$call10_del_TP53==1 & df$MUT_p53_D_SUB_CLON==1, "Double_Hit", 
+                   ifelse(df$call10_del_TP53==0 & df$MUT_p53_D_SUB_CLON==0, "WT", "One_Hit")) %>% as.factor
+
+```
+
+**Table 1:** "ASCT" - "TP53_event" - "PROTOCOL"
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+#####################################################
+
+# ftable(df$TX_I_line_yes_1_no_0, df$group, df$PROTOCOL, dnn = c("ASCT", "TP53_event", "PROTOCOL"))
+
+tab <- ftable(df$TX_I_line_yes_1_no_0, df$group, df$PROTOCOL, dnn = c("ASCT", "TP53_event", "PROTOCOL")) %>% as.data.frame()
+
+t <- reshape2::dcast(tab, ASCT+PROTOCOL~TP53_event)
+
+t2 <- reshape2::dcast(tab, ASCT+TP53_event~PROTOCOL)
+
+t2$TOTAL <- t2$AMB + t2$BO2005 + t2$EMN02
+
+
+print(t2, row.names = F)
+
+
+     
+```
+
+**Table 2:** fisher test "TP53 status" vs "ASCT". [**p-val = 0.244 NS**]{.ul}
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+df$TP53_altered <- ifelse(df$group=="Double_Hit"| df$group=="One_Hit", "TP53 altered", "TP53 wt")
+
+with(df,gmodels::CrossTable(TP53_altered, TX_I_line_yes_1_no_0, fisher = T, prop.chisq = F, dnn = c("TP53 status", "ASCT")) )
+```
